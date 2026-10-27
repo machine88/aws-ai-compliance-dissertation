@@ -6,3 +6,4 @@ profile      = "dissertation"
 allowed_account_ids = ["653464153304"]
 encrypt      = true
 use_lockfile = true
+workspace_key_prefix = "dissertation/653464153304/us-east-2/baseline/workspaces"

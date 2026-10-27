@@ -1,0 +1,47 @@
+{
+  "checks": [
+    {
+      "name": "state-write",
+      "expected": "allowed",
+      "actual": "allowed",
+      "passed": true
+    },
+    {
+      "name": "state-delete",
+      "expected": "implicitDeny",
+      "actual": "implicitDeny",
+      "passed": true
+    },
+    {
+      "name": "lock-delete",
+      "expected": "allowed",
+      "actual": "allowed",
+      "passed": true
+    },
+    {
+      "name": "other-bucket",
+      "expected": "explicitDeny",
+      "actual": "explicitDeny",
+      "passed": true
+    },
+    {
+      "name": "privilege-change",
+      "expected": "explicitDeny",
+      "actual": "explicitDeny",
+      "passed": true
+    },
+    {
+      "name": "compute",
+      "expected": "implicitDeny",
+      "actual": "implicitDeny",
+      "passed": true
+    },
+    {
+      "name": "start-logging",
+      "expected": "implicitDeny",
+      "actual": "implicitDeny",
+      "passed": true
+    }
+  ],
+  "scope": "Identity policies and mandatory boundary; not a proof of provider completeness or account SCP/resource-policy behavior."
+}
