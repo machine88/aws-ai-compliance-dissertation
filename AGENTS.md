@@ -44,3 +44,8 @@
   `{{resolve:secretsmanager:secret-id:SecretString:json-key}}` with
   `asm-exec` so the secret resolves at runtime without entering context.
 <!-- END AWS Agent Toolkit rules -->
+
+## Learning support
+
+- Include occasional simple diagrams at major milestones so the user can learn the architecture and workflow.
+- Clearly label what is deployed, planned, paused, and awaiting approval; explain new terms in plain language.
