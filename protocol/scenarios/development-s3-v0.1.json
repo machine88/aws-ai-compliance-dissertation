@@ -1,0 +1,335 @@
+{
+  "version": "development-s3-v0.1",
+  "status": "draft_development_only",
+  "proposal_sha256": "99ad4b0aa5e1af82346f5e8b0bb1e8388b48726dc8815b8f68bddf3df896f5db",
+  "balance_policy": "exact_equal_counts_proposed",
+  "observation_window_seconds": 1800,
+  "scenarios": [
+    {
+      "scenario_id": "S001",
+      "family_id": "F01",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "rule_matched",
+      "condition": "TLS policy requirement",
+      "control_ids": [
+        "S3.5"
+      ],
+      "nist_control_candidates": [
+        "SC-8"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-5",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S002",
+      "family_id": "F01",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "rule_matched",
+      "condition": "TLS policy requirement",
+      "control_ids": [
+        "S3.5"
+      ],
+      "nist_control_candidates": [
+        "SC-8"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-5",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S003",
+      "family_id": "F02",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "rule_matched",
+      "condition": "Bucket public-access-block settings",
+      "control_ids": [
+        "S3.8"
+      ],
+      "nist_control_candidates": [
+        "AC-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S004",
+      "family_id": "F02",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "rule_matched",
+      "condition": "Bucket public-access-block settings",
+      "control_ids": [
+        "S3.8"
+      ],
+      "nist_control_candidates": [
+        "AC-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S005",
+      "family_id": "F03",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "rule_matched",
+      "condition": "Versioning configuration",
+      "control_ids": [
+        "S3.14"
+      ],
+      "nist_control_candidates": [
+        "CP-9"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-14",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S006",
+      "family_id": "F03",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "rule_matched",
+      "condition": "Versioning configuration",
+      "control_ids": [
+        "S3.14"
+      ],
+      "nist_control_candidates": [
+        "CP-9"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-14",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S007",
+      "family_id": "F04",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "combinatorial_drift",
+      "condition": "TLS and access-block protections together",
+      "control_ids": [
+        "S3.5",
+        "S3.8"
+      ],
+      "nist_control_candidates": [
+        "SC-8",
+        "AC-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-5",
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S008",
+      "family_id": "F04",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "combinatorial_drift",
+      "condition": "TLS and access-block protections together",
+      "control_ids": [
+        "S3.5",
+        "S3.8"
+      ],
+      "nist_control_candidates": [
+        "SC-8",
+        "AC-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-5",
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-8",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S009",
+      "family_id": "F05",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "combinatorial_drift",
+      "condition": "Versioning remains enabled throughout the predefined observation window, including intermediate state",
+      "control_ids": [
+        "S3.14"
+      ],
+      "nist_control_candidates": [
+        "CP-9",
+        "CM-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-14",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S010",
+      "family_id": "F05",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "combinatorial_drift",
+      "condition": "Versioning remains enabled throughout the predefined observation window, including intermediate state",
+      "control_ids": [
+        "S3.14"
+      ],
+      "nist_control_candidates": [
+        "CP-9",
+        "CM-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-14",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S011",
+      "family_id": "F06",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "combinatorial_drift",
+      "condition": "TLS and versioning protections remain enabled throughout the predefined observation window, including intermediate state",
+      "control_ids": [
+        "S3.5",
+        "S3.14"
+      ],
+      "nist_control_candidates": [
+        "SC-8",
+        "CM-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-5",
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-14",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    },
+    {
+      "scenario_id": "S012",
+      "family_id": "F06",
+      "service": "S3",
+      "resource_types": [
+        "AWS::S3::Bucket"
+      ],
+      "stratum": "combinatorial_drift",
+      "condition": "TLS and versioning protections remain enabled throughout the predefined observation window, including intermediate state",
+      "control_ids": [
+        "S3.5",
+        "S3.14"
+      ],
+      "nist_control_candidates": [
+        "SC-8",
+        "CM-3"
+      ],
+      "nist_assessment_status": "pending_independent_verification",
+      "stratum_review_status": "pending_independent_verification",
+      "sources": [
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-5",
+        "https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html#s3-14",
+        "https://csrc.nist.gov/pubs/sp/800/53/a/r5/final"
+      ],
+      "baseline_capability": "not_measured",
+      "execution": "specification_only_no_injector",
+      "leakage_group_id": "S3-protection-overlap",
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+    }
+  ]
+}

@@ -31,6 +31,7 @@ jobs:
       - name: Check Python and function descriptions
         run: |
           python3 scripts/check_function_docs.py
+          python3 scripts/audit_catalog.py
           python3 -m unittest discover -s tests -v
       - name: Validate Terraform without backend access
         run: |
