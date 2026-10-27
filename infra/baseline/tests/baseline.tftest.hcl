@@ -62,8 +62,8 @@ run "collection_scope_and_delivery_policies" {
     error_message = "Control ARNs and baseline freezing must be correct."
   }
   assert {
-    condition     = !one(aws_config_configuration_recorder.research.recording_group).all_supported && toset(one(aws_config_configuration_recorder.research.recording_group).resource_types) == toset(["AWS::S3::Bucket"]) && alltrue([for rule in aws_config_config_rule.s3 : one(rule.scope).tag_value == "aws-ai-compliance-dissertation"])
-    error_message = "Record only S3 types and scope direct Config rules to research tags."
+    condition     = !one(aws_config_configuration_recorder.research.recording_group).all_supported && toset(one(aws_config_configuration_recorder.research.recording_group).resource_types) == toset(["AWS::S3::Bucket"]) && alltrue([for rule in aws_config_config_rule.s3 : one(rule.scope).tag_value == "aws-ai-compliance-dissertation" && one(rule.scope).tag_key == "Project" && length(coalesce(one(rule.scope).compliance_resource_types, [])) == 0])
+    error_message = "Record only S3 types; use tag-only scope for managed S3 rules, without incompatible resource-type scope."
   }
   assert {
     condition     = aws_cloudtrail.research.enable_log_file_validation && !aws_cloudtrail.research.is_multi_region_trail && length(one(aws_cloudtrail.research.event_selector).data_resource) == 0

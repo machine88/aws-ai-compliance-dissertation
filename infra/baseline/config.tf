@@ -49,10 +49,10 @@ resource "aws_config_config_rule" "s3" {
     owner             = "AWS"
     source_identifier = each.value
   }
+  # AWS rejects combining resource-type and tag scope; managed rule sources select S3.
   scope {
-    compliance_resource_types = ["AWS::S3::Bucket"]
-    tag_key                   = "Project"
-    tag_value                 = "aws-ai-compliance-dissertation"
+    tag_key   = "Project"
+    tag_value = "aws-ai-compliance-dissertation"
   }
   depends_on = [aws_config_configuration_recorder.research]
 }
