@@ -44,7 +44,7 @@ def monitor_input(resource_id, observed_facts):
 
 
 def write_prediction(root, phase, learning_role, trial_id, family_id, monitor,
-                     outcome, provenance, protocol_sha256):
+                     outcome, provenance, protocol_sha256, context=None):
     """Persist one immutable monitor decision in orthogonal phase/learning partitions.
 
     Inputs:
@@ -57,6 +57,7 @@ def write_prediction(root, phase, learning_role, trial_id, family_id, monitor,
         outcome: Explicit compliant, noncompliant, unknown or instrumentation-failure result.
         provenance: Scenario, model, feature, mapping, adaptation and observation versions.
         protocol_sha256: SHA-256 of the governing protocol.
+        context: Optional catalog, assignment and predeclared answer-key hashes binding the pair to its design.
 
     Outputs:
         Path: New immutable checksummed prediction file in its phase/learning partition.
@@ -84,6 +85,13 @@ def write_prediction(root, phase, learning_role, trial_id, family_id, monitor,
     payload = {"phase": phase, "learning_role": learning_role, "trial_id": trial_id,
                "family_id": family_id, "monitor": monitor, "outcome": outcome,
                "provenance": provenance, "protocol_sha256": protocol_sha256}
+    # Controller-managed pairs retain their design identity without exposing expected labels.
+    if context is not None:
+        if not isinstance(context, dict) or set(context) != {"catalog_sha256", "assignments_sha256", "ground_truth_sha256"}:
+            raise ValueError("complete catalog, assignment and answer-key fingerprint context required")
+        if any(not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value) for value in context.values()):
+            raise ValueError("design context must contain SHA-256 hashes")
+        payload["context"] = dict(context)
     envelope = {"payload": payload, "payload_sha256": canonical_sha256(payload)}
     path = Path(root) / phase / learning_role / trial_id / f"{monitor}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -122,6 +130,8 @@ def join_for_evaluation(root, phase, learning_role, trial_id, truth_entry):
         records[monitor] = record
     # Require the same scenario and evidence to make the comparison genuinely paired.
     first, second = records["ai"], records["baseline"]
+    if first.get("context") != second.get("context"):
+        raise ValueError("monitors use different catalog or assignment context")
     for key in ("family_id", "protocol_sha256"):
         if first[key] != second[key]:
             raise ValueError("unpaired prediction metadata")
