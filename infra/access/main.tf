@@ -1,7 +1,16 @@
 # This root prepares access only; applying it requires separate approval.
 terraform {
-  required_version = "~> 1.14.0"
-  backend "local" { path = "access.tfstate" }
+  required_version = "~> 1.15.0"
+  backend "s3" {
+    bucket               = "dissertation-653464153304-us-east-2-state"
+    key                  = "dissertation/653464153304/us-east-2/access/terraform.tfstate"
+    region               = "us-east-2"
+    profile              = "dissertation"
+    allowed_account_ids  = ["653464153304"]
+    encrypt              = true
+    use_lockfile         = true
+    workspace_key_prefix = "dissertation/653464153304/us-east-2/access/workspaces"
+  }
   required_providers {
     aws = { source = "hashicorp/aws", version = "6.36.0" }
   }

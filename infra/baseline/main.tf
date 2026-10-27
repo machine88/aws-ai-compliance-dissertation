@@ -1,13 +1,22 @@
 # Regional monitoring baseline. Applying this configuration requires separate user approval.
 terraform {
-  required_version = ">= 1.10, < 2.0"
+  required_version = "~> 1.15.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "= 6.36.0"
     }
   }
-  backend "s3" {}
+  backend "s3" {
+    bucket               = "dissertation-653464153304-us-east-2-state"
+    key                  = "dissertation/653464153304/us-east-2/baseline/terraform.tfstate"
+    region               = "us-east-2"
+    profile              = "dissertation"
+    allowed_account_ids  = ["653464153304"]
+    encrypt              = true
+    use_lockfile         = true
+    workspace_key_prefix = "dissertation/653464153304/us-east-2/baseline/workspaces"
+  }
 }
 
 # Never resolve credentials from an implicit default profile or another AWS account.
