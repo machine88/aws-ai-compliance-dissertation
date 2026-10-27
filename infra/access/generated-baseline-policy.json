@@ -1,0 +1,286 @@
+{
+  "Id": "IamPolicyAutopilot",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "aws-portal:ModifyBilling",
+        "aws-portal:ViewBilling"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "budgets:ListTagsForResource",
+        "budgets:ModifyBudget",
+        "budgets:TagResource",
+        "budgets:UntagResource",
+        "budgets:ViewBudget"
+      ],
+      "Resource": [
+        "arn:aws:budgets::653464153304:budget/dissertation-research-account-alerts",
+        "arn:aws:budgets::653464153304:budget/dissertation-research-account-alerts/action/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:AddTags",
+        "cloudtrail:CreateTrail",
+        "cloudtrail:GetEventSelectors",
+        "cloudtrail:GetInsightSelectors",
+        "cloudtrail:GetTrailStatus",
+        "cloudtrail:ListTags",
+        "cloudtrail:PutEventSelectors",
+        "cloudtrail:PutInsightSelectors",
+        "cloudtrail:RemoveTags",
+        "cloudtrail:StartLogging",
+        "cloudtrail:StopLogging"
+      ],
+      "Resource": [
+        "arn:aws:cloudtrail:us-east-2:653464153304:channel/*",
+        "arn:aws:cloudtrail:us-east-2:653464153304:dashboard/*",
+        "arn:aws:cloudtrail:us-east-2:653464153304:eventdatastore/*",
+        "arn:aws:cloudtrail:us-east-2:653464153304:trail/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:DescribeTrails"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "config:DescribeConfigRules",
+        "config:DescribeDeliveryChannels",
+        "config:PutDeliveryChannel"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "config:DescribeConfigurationRecorderStatus",
+        "config:DescribeConfigurationRecorders",
+        "config:ListTagsForResource",
+        "config:PutConfigRule",
+        "config:PutConfigurationRecorder",
+        "config:StartConfigurationRecorder",
+        "config:StopConfigurationRecorder",
+        "config:TagResource",
+        "config:UntagResource"
+      ],
+      "Resource": [
+        "arn:aws:config:us-east-2:653464153304:aggregation-authorization/*/*",
+        "arn:aws:config:us-east-2:653464153304:config-aggregator/*",
+        "arn:aws:config:us-east-2:653464153304:config-rule/*",
+        "arn:aws:config:us-east-2:653464153304:configuration-recorder/*/*",
+        "arn:aws:config:us-east-2:653464153304:conformance-pack/*/*",
+        "arn:aws:config:us-east-2:653464153304:connector/*/*/*",
+        "arn:aws:config:us-east-2:653464153304:organization-config-rule/*",
+        "arn:aws:config:us-east-2:653464153304:organization-conformance-pack/*",
+        "arn:aws:config:us-east-2:653464153304:stored-query/*/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:GetRole",
+        "iam:ListInstanceProfileTags",
+        "iam:ListMFADeviceTags",
+        "iam:ListOpenIDConnectProviderTags",
+        "iam:ListPolicyTags",
+        "iam:ListRoleTags",
+        "iam:ListSAMLProviderTags",
+        "iam:ListServerCertificateTags",
+        "iam:ListUserTags",
+        "iam:PutRolePolicy",
+        "iam:TagInstanceProfile",
+        "iam:TagMFADevice",
+        "iam:TagOpenIDConnectProvider",
+        "iam:TagPolicy",
+        "iam:TagRole",
+        "iam:TagSAMLProvider",
+        "iam:TagServerCertificate",
+        "iam:TagUser",
+        "iam:UntagInstanceProfile",
+        "iam:UntagMFADevice",
+        "iam:UntagOpenIDConnectProvider",
+        "iam:UntagPolicy",
+        "iam:UntagRole",
+        "iam:UntagSAMLProvider",
+        "iam:UntagServerCertificate",
+        "iam:UntagUser"
+      ],
+      "Resource": [
+        "arn:aws:iam::653464153304:instance-profile/*",
+        "arn:aws:iam::653464153304:mfa/*",
+        "arn:aws:iam::653464153304:oidc-provider/*",
+        "arn:aws:iam::653464153304:policy/*",
+        "arn:aws:iam::653464153304:role/*",
+        "arn:aws:iam::653464153304:saml-provider/*",
+        "arn:aws:iam::653464153304:server-certificate/*",
+        "arn:aws:iam::653464153304:user/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "cloudtrail.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "config.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "s3.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucketPolicy",
+        "s3:DeleteBucketWebsite",
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLogging",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket",
+        "s3:PutAccelerateConfiguration",
+        "s3:PutBucketAcl",
+        "s3:PutBucketCORS",
+        "s3:PutBucketLogging",
+        "s3:PutBucketObjectLockConfiguration",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketRequestPayment",
+        "s3:PutBucketTagging",
+        "s3:PutBucketVersioning",
+        "s3:PutBucketWebsite",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutReplicationConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-research-653464153304-us-east-2-logs",
+        "arn:aws:s3:us-east-2:653464153304:accesspoint/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObjectTagging",
+        "s3:DeleteObjectVersionTagging",
+        "s3:GetObjectTagging",
+        "s3:GetObjectVersionTagging",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-research-653464153304-us-east-2-logs/*",
+        "arn:aws:s3:us-east-2:653464153304:accesspoint/*/object/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3-object-lambda:DeleteObjectTagging",
+        "s3-object-lambda:GetObjectTagging",
+        "s3-object-lambda:PutObjectTagging"
+      ],
+      "Resource": [
+        "arn:aws:s3:::*/*",
+        "arn:aws:s3:us-east-2:653464153304:accesspoint/*/object/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3express:GetLifecycleConfiguration",
+        "s3express:PutLifecycleConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "securityhub:DescribeHub",
+        "securityhub:EnableSecurityHub",
+        "securityhub:TagResource",
+        "securityhub:UpdateSecurityHubConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:securityhub:us-east-2:653464153304:aggregatorv2/*",
+        "arn:aws:securityhub:us-east-2:653464153304:automation-rule/*",
+        "arn:aws:securityhub:us-east-2:653464153304:automation-rulev2/*",
+        "arn:aws:securityhub:us-east-2:653464153304:configuration-policy/*",
+        "arn:aws:securityhub:us-east-2:653464153304:connector/*",
+        "arn:aws:securityhub:us-east-2:653464153304:connectorv2/*",
+        "arn:aws:securityhub:us-east-2:653464153304:hub/default",
+        "arn:aws:securityhub:us-east-2:653464153304:hubv2/*"
+      ]
+    }
+  ]
+}

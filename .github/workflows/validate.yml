@@ -41,3 +41,6 @@ jobs:
           terraform -chdir=infra/baseline init -backend=false -input=false
           terraform -chdir=infra/baseline validate
           terraform -chdir=infra/baseline test
+          terraform -chdir=infra/access init -backend=false -input=false
+          terraform -chdir=infra/access validate
+          terraform -chdir=infra/access test

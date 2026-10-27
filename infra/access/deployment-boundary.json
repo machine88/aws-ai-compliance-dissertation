@@ -1,0 +1,310 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "B01",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "NotResource": [
+        "arn:aws:s3:::dissertation-research-653464153304-us-east-2-logs",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/baseline/terraform.tfstate",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/baseline/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B02",
+      "Effect": "Deny",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:DeleteRolePermissionsBoundary",
+        "iam:PutRolePermissionsBoundary",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:CreateAccessKey",
+        "iam:CreateUser",
+        "iam:CreateRole",
+        "sts:AssumeRole"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "B03",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:PutBucketTagging",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLocation",
+        "s3:GetBucketLogging",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-research-653464153304-us-east-2-logs"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B04",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state"
+      ]
+    },
+    {
+      "Sid": "B05",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state"
+      ],
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "dissertation/653464153304/us-east-2/baseline/terraform.tfstate",
+            "dissertation/653464153304/us-east-2/baseline/terraform.tfstate.tflock",
+            "dissertation/653464153304/us-east-2/baseline/workspaces/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "B06",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/baseline/terraform.tfstate",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/baseline/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B07",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/baseline/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B08",
+      "Effect": "Allow",
+      "Action": [
+        "config:DescribeConfigurationRecorders",
+        "config:DescribeConfigurationRecorderStatus",
+        "config:PutConfigurationRecorder",
+        "config:StopConfigurationRecorder"
+      ],
+      "Resource": [
+        "arn:aws:config:us-east-2:653464153304:configuration-recorder/dissertation-research/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B09",
+      "Effect": "Allow",
+      "Action": [
+        "config:PutConfigRule"
+      ],
+      "Resource": [
+        "arn:aws:config:us-east-2:653464153304:config-rule/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2",
+          "aws:RequestTag/Project": "aws-ai-compliance-dissertation"
+        }
+      }
+    },
+    {
+      "Sid": "B10",
+      "Effect": "Allow",
+      "Action": [
+        "config:ListTagsForResource",
+        "config:TagResource"
+      ],
+      "Resource": [
+        "arn:aws:config:us-east-2:653464153304:configuration-recorder/dissertation-research/*",
+        "arn:aws:config:us-east-2:653464153304:config-rule/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B11",
+      "Effect": "Allow",
+      "Action": [
+        "config:DescribeConfigRules",
+        "config:DescribeDeliveryChannels",
+        "config:PutDeliveryChannel"
+      ],
+      "Resource": [
+        "*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B12",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:AddTags",
+        "cloudtrail:CreateTrail",
+        "cloudtrail:GetTrail",
+        "cloudtrail:GetEventSelectors",
+        "cloudtrail:GetInsightSelectors",
+        "cloudtrail:GetTrailStatus",
+        "cloudtrail:ListTags",
+        "cloudtrail:PutEventSelectors",
+        "cloudtrail:StopLogging"
+      ],
+      "Resource": [
+        "arn:aws:cloudtrail:us-east-2:653464153304:trail/dissertation-research"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B13",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:DescribeTrails"
+      ],
+      "Resource": [
+        "*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B14",
+      "Effect": "Allow",
+      "Action": [
+        "securityhub:DescribeHub",
+        "securityhub:EnableSecurityHub",
+        "securityhub:UpdateSecurityHubConfiguration",
+        "securityhub:ListTagsForResource",
+        "securityhub:TagResource"
+      ],
+      "Resource": [
+        "arn:aws:securityhub:us-east-2:653464153304:hub/default"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B15",
+      "Effect": "Allow",
+      "Action": [
+        "budgets:ModifyBudget",
+        "budgets:ViewBudget",
+        "budgets:ListTagsForResource",
+        "budgets:TagResource"
+      ],
+      "Resource": [
+        "arn:aws:budgets::653464153304:budget/dissertation-research-account-alerts"
+      ]
+    },
+    {
+      "Sid": "B16",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::653464153304:role/aws-service-role/config.amazonaws.com/AWSServiceRoleForConfig",
+        "arn:aws:iam::653464153304:role/aws-service-role/securityhub.amazonaws.com/AWSServiceRoleForSecurityHub"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": [
+            "config.amazonaws.com",
+            "securityhub.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "B17",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:ListRoleTags",
+        "iam:TagRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::653464153304:role/aws-service-role/config.amazonaws.com/AWSServiceRoleForConfig",
+        "arn:aws:iam::653464153304:role/aws-service-role/securityhub.amazonaws.com/AWSServiceRoleForSecurityHub"
+      ]
+    },
+    {
+      "Sid": "B18",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::653464153304:role/aws-service-role/config.amazonaws.com/AWSServiceRoleForConfig"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "config.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
