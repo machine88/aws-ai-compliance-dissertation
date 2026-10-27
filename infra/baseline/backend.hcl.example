@@ -1,6 +1,8 @@
-# Supply reviewed existing bucket and region; never put credentials here.
-bucket = "REPLACE_WITH_REVIEWED_STATE_BUCKET"
-key = "dissertation/653464153304/REGION/baseline/terraform.tfstate"
-region = "REPLACE_WITH_APPROVED_REGION"
-encrypt = true
+# Bootstrap this dedicated bucket only after the reviewed deployment plan is approved.
+bucket       = "dissertation-653464153304-us-east-2-state"
+key          = "dissertation/653464153304/us-east-2/baseline/terraform.tfstate"
+region       = "us-east-2"
+profile      = "dissertation"
+allowed_account_ids = ["653464153304"]
+encrypt      = true
 use_lockfile = true

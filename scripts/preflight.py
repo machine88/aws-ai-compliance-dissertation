@@ -19,9 +19,9 @@ def main():
     parser.add_argument("--region", required=True)
     args = parser.parse_args()
     identity = aws(args.profile, args.region, "sts", "get-caller-identity")
-    # Refuse inventory calls against another account.
-    if identity.get("Account") != TARGET:
-        raise SystemExit("Account mismatch; inventory refused")
+    # Refuse inventory calls from root or against another account.
+    if identity.get("Account") != TARGET or identity.get("Arn", "").endswith(":root"):
+        raise SystemExit("Account mismatch or root session; inventory refused")
     print(json.dumps({"identity": identity}))
     for service, operation in [("configservice", "describe-configuration-recorders"),
                                ("configservice", "describe-delivery-channels"),
