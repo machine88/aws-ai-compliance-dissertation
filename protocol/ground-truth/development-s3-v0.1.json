@@ -1,0 +1,132 @@
+{
+  "catalog_version": "development-s3-v0.1",
+  "proposal_sha256": "99ad4b0aa5e1af82346f5e8b0bb1e8388b48726dc8815b8f68bddf3df896f5db",
+  "status": "draft_independent_specification_not_reviewed",
+  "derivation": "Authored from cited control intent and proposed technical state before any monitor outputs; no findings or anomaly scores used.",
+  "entries": {
+    "S001": {
+      "expected": "compliant",
+      "required_facts": {
+        "end.tls_deny_present": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S002": {
+      "expected": "noncompliant",
+      "required_facts": {
+        "end.tls_deny_present": false
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S003": {
+      "expected": "compliant",
+      "required_facts": {
+        "end.block_public_acls": true,
+        "end.ignore_public_acls": true,
+        "end.block_public_policy": true,
+        "end.restrict_public_buckets": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S004": {
+      "expected": "noncompliant",
+      "required_facts": {
+        "end.block_public_acls": true,
+        "end.ignore_public_acls": true,
+        "end.block_public_policy": false,
+        "end.restrict_public_buckets": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S005": {
+      "expected": "compliant",
+      "required_facts": {
+        "end.versioning_enabled": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S006": {
+      "expected": "noncompliant",
+      "required_facts": {
+        "end.versioning_enabled": false
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S007": {
+      "expected": "compliant",
+      "required_facts": {
+        "end.tls_deny_present": true,
+        "end.block_public_policy": true,
+        "end.block_public_acls": true,
+        "end.ignore_public_acls": true,
+        "end.restrict_public_buckets": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S008": {
+      "expected": "noncompliant",
+      "required_facts": {
+        "end.tls_deny_present": true,
+        "end.block_public_policy": false,
+        "end.block_public_acls": true,
+        "end.ignore_public_acls": true,
+        "end.restrict_public_buckets": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S009": {
+      "expected": "compliant",
+      "required_facts": {
+        "start.versioning_enabled": true,
+        "middle.versioning_enabled": true,
+        "end.versioning_enabled": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S010": {
+      "expected": "noncompliant",
+      "required_facts": {
+        "start.versioning_enabled": true,
+        "middle.versioning_enabled": false,
+        "end.versioning_enabled": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S011": {
+      "expected": "compliant",
+      "required_facts": {
+        "start.tls_deny_present": true,
+        "start.versioning_enabled": true,
+        "middle.tls_deny_present": true,
+        "middle.versioning_enabled": true,
+        "end.tls_deny_present": true,
+        "end.versioning_enabled": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    },
+    "S012": {
+      "expected": "noncompliant",
+      "required_facts": {
+        "start.tls_deny_present": true,
+        "start.versioning_enabled": true,
+        "middle.tls_deny_present": false,
+        "middle.versioning_enabled": true,
+        "end.tls_deny_present": true,
+        "end.versioning_enabled": true
+      },
+      "assessment_procedure_status": "pending_NIST_53A_release_5.2.0_mapping",
+      "interpretation": "Truth is limited to the stated technical requirement; no claim of full NIST control compliance."
+    }
+  }
+}
