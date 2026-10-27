@@ -33,7 +33,7 @@ variable "budget_email" {
 # Planning value only; alerts are delayed notifications and do not stop charges.
 variable "monthly_budget_usd" {
   type        = number
-  default     = 25
+  default     = 100
   description = "Proposed monthly account-wide alert budget, subject to user approval."
   validation {
     condition     = var.monthly_budget_usd > 0

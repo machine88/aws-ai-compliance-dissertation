@@ -44,3 +44,12 @@
   `{{resolve:secretsmanager:secret-id:SecretString:json-key}}` with
   `asm-exec` so the secret resolves at runtime without entering context.
 <!-- END AWS Agent Toolkit rules -->
+
+## Learning support
+
+- Include occasional simple diagrams at major milestones so the user can learn the architecture and workflow.
+- Clearly label what is deployed, planned, paused, and awaiting approval; explain new terms in plain language.
+
+## Cost preference
+
+- Use a $100 monthly account-wide alert budget, with early warnings and no automatic spending cutoff. Prioritize completing the dissertation while avoiding unnecessary AWS spend.

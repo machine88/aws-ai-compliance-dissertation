@@ -16,6 +16,10 @@ terraform {
     encrypt              = true
     use_lockfile         = true
     workspace_key_prefix = "dissertation/653464153304/us-east-2/baseline/workspaces"
+    assume_role = {
+      role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+      session_name = "dissertation-baseline-state"
+    }
   }
 }
 
@@ -24,6 +28,11 @@ provider "aws" {
   region              = var.region
   profile             = var.aws_profile
   allowed_account_ids = ["653464153304"]
+  # Both regional and billing operations must use the bounded deployment role.
+  assume_role {
+    role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+    session_name = "dissertation-baseline-deploy"
+  }
   default_tags {
     tags = {
       Project   = "aws-ai-compliance-dissertation"
@@ -39,6 +48,11 @@ provider "aws" {
   region              = "us-east-1"
   profile             = var.aws_profile
   allowed_account_ids = ["653464153304"]
+  # Both regional and billing operations must use the bounded deployment role.
+  assume_role {
+    role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+    session_name = "dissertation-baseline-deploy"
+  }
 }
 
 data "aws_caller_identity" "current" {}
@@ -57,8 +71,8 @@ resource "terraform_data" "identity_guard" {
   input = data.aws_caller_identity.current.account_id
   lifecycle {
     precondition {
-      condition     = data.aws_caller_identity.current.account_id == local.account_id && !endswith(data.aws_caller_identity.current.arn, ":root")
-      error_message = "Use a non-root identity in dissertation account 653464153304."
+      condition     = data.aws_caller_identity.current.account_id == local.account_id && startswith(data.aws_caller_identity.current.arn, "arn:aws:sts::653464153304:assumed-role/dissertation-paused-baseline-deploy/")
+      error_message = "Use the bounded dissertation deployment role in account 653464153304."
     }
   }
 }
