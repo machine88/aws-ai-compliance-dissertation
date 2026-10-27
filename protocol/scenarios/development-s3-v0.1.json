@@ -29,7 +29,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3.5"
     },
     {
       "scenario_id": "S002",
@@ -55,7 +56,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3.5"
     },
     {
       "scenario_id": "S003",
@@ -81,7 +83,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3.8"
     },
     {
       "scenario_id": "S004",
@@ -107,7 +110,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3.8"
     },
     {
       "scenario_id": "S005",
@@ -133,7 +137,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3.14"
     },
     {
       "scenario_id": "S006",
@@ -159,7 +164,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3.14"
     },
     {
       "scenario_id": "S007",
@@ -188,7 +194,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3_TLS_ACCESS"
     },
     {
       "scenario_id": "S008",
@@ -217,7 +224,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3_TLS_ACCESS"
     },
     {
       "scenario_id": "S009",
@@ -244,7 +252,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3_VERSIONING_WINDOW"
     },
     {
       "scenario_id": "S010",
@@ -271,7 +280,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3_VERSIONING_WINDOW"
     },
     {
       "scenario_id": "S011",
@@ -300,7 +310,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3_TLS_VERSIONING_WINDOW"
     },
     {
       "scenario_id": "S012",
@@ -329,7 +340,8 @@
       "baseline_capability": "not_measured",
       "execution": "specification_only_no_injector",
       "leakage_group_id": "S3-protection-overlap",
-      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated"
+      "ground_truth_time_basis": "stated technical requirement across the predefined observation window; temporal capture not yet validated",
+      "technical_mapping_target": "S3_TLS_VERSIONING_WINDOW"
     }
   ]
 }

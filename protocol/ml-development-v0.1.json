@@ -79,6 +79,6 @@
     "No held-out updates",
     "No ground-truth labels in model input",
     "No claim that synthetic outputs estimate research performance",
-    "Catalog manifest/controller and scientific freeze integrations pending"
+    "Live controller and scientific freeze integrations pending"
   ]
 }

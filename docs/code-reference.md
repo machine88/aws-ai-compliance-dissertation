@@ -14,7 +14,7 @@ JSON does not support comments. The following descriptions explain the existing 
 | --- | --- | --- | --- |
 | `protocol/proposal-constraints.json` | Retain proposal requirements and unresolved methodological choices. | Final proposal fingerprint, outcomes, power assumptions, collection requirements. | Protocol/candidate-design review; its original deployment flag is not a current infrastructure inventory. |
 | `protocol/baseline-price-snapshot.json` | Retain exact public Ohio unit rates and refresh provenance. | AWS Price List SKUs, units, publication dates and USD rates. | Decimal cost calculator and budget review; not a live bill or spend cap. |
-| `protocol/scenarios/development-s3-v0.1.json` | Describe draft conditions without expected labels. | Source references, neutral IDs, family/overlap groups, provisional strata and control candidates. | Catalog validation and readiness audit; cannot freeze this incomplete slice. |
+| `protocol/scenarios/development-s3-v0.1.json` | Describe draft conditions without expected labels. | Source references, neutral IDs, family/overlap groups, provisional strata, control candidates and explicit technical mapping targets. | Catalog validation and readiness audit; cannot freeze this incomplete slice. |
 | `protocol/ground-truth/development-s3-v0.1.json` | Store separately authored draft expected answers. | Matching scenario IDs, expected states and stated technical facts. | Offline evaluation after paired predictions persist; never model features. |
 | `protocol/ml-development-v0.1.json` | Retain proposed model and adaptation settings. | Seed, forest size, feature order, threshold calibration, technical targets and bounded-update policy. | Engineering review and reproducible development runs; not a frozen formal-study protocol. |
 | `infra/baseline/fsbp-controls-us-east-2.json` | Pin the reviewed regional control-ID snapshot. | Available control IDs and snapshot provenance. | Terraform's explicit standard/control configuration after separately approved activation. |
@@ -33,3 +33,5 @@ Policy JSON files are not edited to insert fake comment properties, and formal a
 - **Side effect:** a file or state change beyond the function's returned value.
 
 The scientific pipeline remains development-only and AWS collection remains paused. These explanation changes do not activate monitoring or alter research outcomes.
+
+The offline controller adds a retained design record and pairs bound to catalog, assignment and predeclared answer-key hashes. See `development-controller.md` for each interface and its outputs. These private run files stay under ignored evidence storage.

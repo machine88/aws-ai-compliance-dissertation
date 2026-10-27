@@ -30,7 +30,7 @@ def main():
         "limits": ["No AWS collector or real observations", "No pilot or confirmatory use",
                    "No held-out updates", "No ground-truth labels in model input",
                    "No claim that synthetic outputs estimate research performance",
-                   "Catalog manifest/controller and scientific freeze integrations pending"]}
+                   "Live controller and scientific freeze integrations pending"]}
     destination = Path(__file__).resolve().parents[1] / "protocol/ml-development-v0.1.json"
     destination.write_text(json.dumps(specification, indent=2) + "\n")
     print("Development ML protocol exported; no fit, AWS call or formal freeze.")

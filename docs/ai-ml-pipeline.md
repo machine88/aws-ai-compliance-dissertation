@@ -52,7 +52,7 @@ Updates are eligible only before predefined future batches 4, 6, 8 and 10. Each 
 
 The candidate is a fresh forest with unchanged hyperparameters and seed. It is checked against the fixed validation anchor. Excessive anchor-score movement rejects the candidate; per-update threshold movement is limited to 0.025 and cumulative movement to 0.05 from the initial threshold. Failed candidates retain the existing forest, pool and threshold and append a rejection audit. Accepted updates retain the before/after versions and source-receipt hashes. No held-out labels or held-out performance metric selects an update.
 
-The catalog assignment manifest and live experiment controller are not integrated yet: row-role declarations and observed group history are programmatic safeguards, not authentication of scientific independence. Formal pilot/confirmatory inputs remain disabled. Protocol review must resolve adaptation eligibility, reference-data contamination protections, anchor adequacy and these proposed limits before collection.
+An offline controller now binds observations to catalog/assignment manifests and complete paired receipts; see `development-controller.md`. Live control, scientific independence review and formal-run authorization remain pending: these programmatic safeguards do not authenticate scientific independence. Formal pilot/confirmatory inputs remain disabled. Protocol review must resolve adaptation eligibility, reference-data contamination protections, anchor adequacy and these proposed limits before collection.
 
 ## Reproducibility and checks
 

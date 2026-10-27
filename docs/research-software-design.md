@@ -40,7 +40,7 @@ The full proposal still requires EC2, Lambda, EKS, VPC and IAM in addition to S3
 - `protocol/scenarios/development-s3-v0.1.json`: draft conditions, neutral IDs, external references, family/overlap grouping and review status; no labels.
 - `protocol/ground-truth/development-s3-v0.1.json`: authored expected answers and required technical facts. These are design specifications, not observed evidence.
 - `research/catalog.py`: balance/provenance checks, group assignments and guarded immutable freeze.
-- `research/trials.py`: allowlisted inputs, development prediction storage and post-persistence evaluation join. Model/feature/mapping/adaptation versions are required metadata, not implemented algorithms.
+- `research/trials.py`: allowlisted inputs, development prediction storage and post-persistence evaluation join. Model/feature/mapping/adaptation versions are required metadata. An offline ML prototype and paired development controller now consume these contracts; see `ai-ml-pipeline.md` and `development-controller.md`.
 - `scripts/audit_catalog.py`: offline balance/readiness report, included in CI. Draft readiness errors are reported, not hidden or treated as a passing formal-release gate.
 
 Run `python3 scripts/audit_catalog.py`, `python3 scripts/check_function_docs.py` and `python3 -m unittest discover -s tests -v`. Tests use synthetic design fixtures; none contact AWS. Every function has a brief description.
