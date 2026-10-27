@@ -45,12 +45,12 @@ The full proposal still requires EC2, Lambda, EKS, VPC and IAM in addition to S3
 
 Run `python3 scripts/audit_catalog.py`, `python3 scripts/check_function_docs.py` and `python3 -m unittest discover -s tests -v`. Tests use synthetic design fixtures; none contact AWS. Every function has a brief description.
 
-The input facts are proposed booleans, not a frozen Isolation Forest feature schema. The real collectors, model, bounded adaptation, deterministic mapping, trigger/timing controller, immutable formal-run authorization and R power/inferential analyses remain to implement. Do not interpret successful contract tests as empirical validation.
+The input facts are proposed booleans, not a frozen Isolation Forest feature schema. A development-only Isolation Forest, bounded adaptation and evidence-gated mapping are now implemented in `research/ml.py`; see `ai-ml-pipeline.md`. Real collectors, the trigger/timing controller, immutable formal-run authorization and R power/inferential analyses remain to implement. Do not interpret successful contract tests as empirical validation.
 
 ## Proposal traceability and next implementation
 
 This work addresses M01–M03 and M10–M12 in `proposal-traceability.md`. The source DOCX in OneDrive timed out during this turn; its retained byte-for-byte cached copy was rehashed against the recorded final-proposal SHA-256 and the relevant source paragraphs were reread. The proposal and cached full text are not published.
 
-Next expand and review the catalog across all six services, define executable state observations and the frozen feature/mapping/adaptation protocol, then implement the offline model and evidence controller. Baseline fusion, unknown-compliant denominators, power-based sample size and independent review remain explicit unresolved decisions. All AWS activation and further deployments still require a reviewed plan and approval.
+Next expand and review the catalog across all six services, define executable state observations and the frozen feature/mapping/adaptation protocol, then integrate the offline model with the evidence controller. Baseline fusion, unknown-compliant denominators, power-based sample size and independent review remain explicit unresolved decisions. All AWS activation and further deployments still require a reviewed plan and approval.
 
 Sources: [AWS S3 controls](https://docs.aws.amazon.com/securityhub/latest/userguide/s3-controls.html), [NIST SP 800-53A Rev. 5 and Release 5.2.0](https://csrc.nist.gov/pubs/sp/800/53/a/r5/final).
