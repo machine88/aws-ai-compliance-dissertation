@@ -57,5 +57,6 @@
     "First pricing tier only; refresh before deployment.",
     "CSPM standalone check pricing, not Security Hub V2 Essentials.",
     "Free trials and credits are not assumed."
-  ]
+  ],
+  "verified_at_utc": "2026-10-27T04:14:51Z"
 }

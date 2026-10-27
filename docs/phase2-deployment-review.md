@@ -1,6 +1,6 @@
 # Phase 2 monitoring baseline review
 
-Status: implemented and tested offline; no deployment approved or performed. This PR does not freeze the experimental catalog or authorize pilot or confirmatory collection.
+Historical Phase 2 review. Bootstrap, restricted-role deployment and state migration are now complete; see `state-migration-completed.md`. The current paused monitoring plan is in `paused-baseline-approval.md` and has not been applied. Original review status: implemented and tested offline; no deployment approved or performed. This PR does not freeze the experimental catalog or authorize pilot or confirmatory collection.
 
 ## Proposed resources
 

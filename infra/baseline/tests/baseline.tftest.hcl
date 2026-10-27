@@ -4,7 +4,7 @@ mock_provider "aws" {
   mock_data "aws_caller_identity" {
     defaults = {
       account_id = "653464153304"
-      arn        = "arn:aws:iam::653464153304:user/test-operator"
+      arn        = "arn:aws:sts::653464153304:assumed-role/dissertation-paused-baseline-deploy/offline-test"
       user_id    = "test-operator"
     }
   }
@@ -101,4 +101,14 @@ run "reject_unreviewed_control" {
   command = plan
   variables { enabled_security_controls = ["EC2.1"] }
   expect_failures = [var.enabled_security_controls]
+}
+
+# Even a valid account user must not bypass the bounded deployment role.
+run "reject_unbounded_user" {
+  command = plan
+  override_data {
+    target = data.aws_caller_identity.current
+    values = { account_id = "653464153304", arn = "arn:aws:iam::653464153304:user/test-operator" }
+  }
+  expect_failures = [terraform_data.identity_guard]
 }
