@@ -35,3 +35,5 @@ Policy JSON files are not edited to insert fake comment properties, and formal a
 The scientific pipeline remains development-only and AWS collection remains paused. These explanation changes do not activate monitoring or alter research outcomes.
 
 The offline controller adds a retained design record and pairs bound to catalog, assignment and predeclared answer-key hashes. See `development-controller.md` for each interface and its outputs. These private run files stay under ignored evidence storage.
+
+`protocol/timing-development-v0.1.json` retains the proposed timing clock, fixed 1,800-second horizon, endpoint/censoring rules and unresolved review requirements. Inputs are the proposal constraints and explicit development clock policy; output is the reviewable timing specification used by `research/timing.py`. See `timing-and-censoring.md` for event/window interfaces and the separate post-persistence label join.

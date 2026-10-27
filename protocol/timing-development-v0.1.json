@@ -1,0 +1,23 @@
+{
+  "status": "development_proposal_not_frozen",
+  "contract_version": "development-recorded-clock-v0.1",
+  "proposal_sha256": "99ad4b0aa5e1af82346f5e8b0bb1e8388b48726dc8815b8f68bddf3df896f5db",
+  "observation_window_seconds": 1800,
+  "proposed_primary_clock": "collector_recorded_time",
+  "source_clocks_retained": ["source_observed_at", "detected_at", "recorded_at"],
+  "endpoint_rule": "recorded_at at the exact endpoint is eligible; later recordings are retained but not credited",
+  "first_signal_selection": "earliest valid attributable noncompliance signal, then event ID for equal recorded times",
+  "non_detection": "duration 1800 with event_observed false and right_censored true, only for eligible noncompliant trials",
+  "quality_rule": "shared trigger/closure/collection failures or documented attributable instrumentation failures invalidate paired primary latency/FN derivation",
+  "normal_warning_behavior": "retain unknown WARNING or NOT_AVAILABLE without automatic invalidation",
+  "late_failure_rule": "a documented failure sourced within the window can invalidate it even when recorded later before ledger closure",
+  "unresolved": [
+    "final source-versus-collector clock policy review and freeze",
+    "real trigger evidence verification and clock synchronization",
+    "live collector normalization, timestamp attribution and telemetry completeness",
+    "final baseline result fusion",
+    "unknown-compliant accuracy and FPR denominator policy",
+    "formal release, pilot feasibility and confirmatory authorization",
+    "R survival analysis and paired power simulation"
+  ]
+}
