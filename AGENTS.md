@@ -7,6 +7,13 @@
 - The final dissertation proposal is the methodological source of truth; do not substitute chat summaries.
 - Keep development, pilot and confirmatory evidence separate. Do not invent research results.
 
+## Code documentation
+
+- Give every function and method a brief description of what it does, including test helpers and test methods. Use Python docstrings and the equivalent concise comment style in other languages.
+- Add short file or module descriptions and comments for configuration blocks or non-obvious code where they help explain purpose, safeguards or research assumptions.
+- Keep comments plain and concise. Explain intent without narrating obvious operations; update descriptions whenever behavior changes.
+- Apply this convention to both new code and existing code touched during implementation.
+
 <!-- BEGIN AWS Agent Toolkit rules -->
 # AWS Guidance
 
