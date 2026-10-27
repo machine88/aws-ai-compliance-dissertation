@@ -1,3 +1,6 @@
+# Purpose: supply reviewed bootstrap initialization or planning settings.
+# Inputs: non-secret account/region/profile/role values or explicit review variables.
+# Outputs: values consumed by Terraform; this example does not apply infrastructure.
 # Use only after approval and replacing the local backend with backend "s3" {}.
 bucket = "dissertation-653464153304-us-east-2-state"
 key = "dissertation/653464153304/us-east-2/bootstrap/terraform.tfstate"

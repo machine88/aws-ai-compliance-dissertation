@@ -1,4 +1,6 @@
 # Regional monitoring baseline. Applying this configuration requires separate user approval.
+# Select compatible tools, provider versions and isolated state storage.
+# Inputs: version constraints and non-secret backend settings. Outputs: the initialization/state configuration.
 terraform {
   required_version = "~> 1.15.0"
   required_providers {
@@ -24,6 +26,8 @@ terraform {
 }
 
 # Never resolve credentials from an implicit default profile or another AWS account.
+# Configure the explicit account, region and bounded deployment session.
+# Inputs: local profile, region and any declared role settings. Outputs: the authenticated client used by this provider alias.
 provider "aws" {
   region              = var.region
   profile             = var.aws_profile
@@ -43,6 +47,8 @@ provider "aws" {
 }
 
 # Billing is global and uses the Northern Virginia API endpoint.
+# Configure the explicit account, region and bounded deployment session.
+# Inputs: local profile, region and any declared role settings. Outputs: the authenticated client used by this provider alias.
 provider "aws" {
   alias               = "billing"
   region              = "us-east-1"
@@ -55,8 +61,12 @@ provider "aws" {
   }
 }
 
+# Read the selected AWS caller identity without creating resources.
+# Inputs: the configured provider session. Outputs: account ID, caller ARN and user identifier.
 data "aws_caller_identity" "current" {}
 
+# Derive consistent account, resource and control identifiers.
+# Inputs: fixed study scope and reviewed configuration. Outputs: named values reused by the resources below.
 locals {
   account_id = "653464153304"
   prefix     = "dissertation-research"
@@ -67,6 +77,8 @@ locals {
 }
 
 # Refuse root sessions before resource creation, even inside the expected account.
+# Stop unsafe identities before resource provisioning begins.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "terraform_data" "identity_guard" {
   input = data.aws_caller_identity.current.account_id
   lifecycle {

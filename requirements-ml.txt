@@ -1,6 +1,11 @@
 # Exact development ML dependencies; no AWS SDK or cloud training required.
+# Fits and scores the Isolation Forest estimator.
 scikit-learn==1.7.2
+# Supplies numeric feature matrices, quantiles and finite-value checks.
 numpy==2.3.5
+# Supplies scientific operations required by scikit-learn.
 scipy==1.16.3
+# Writes the fitted model artifact used by reproducibility checks.
 joblib==1.5.2
+# Coordinates native numerical-library thread pools.
 threadpoolctl==3.6.0

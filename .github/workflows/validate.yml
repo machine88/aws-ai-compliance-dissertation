@@ -16,8 +16,10 @@ jobs:
       TF_IN_AUTOMATION: "true"
       TASK_TERRAFORM_SHA256: "dcd4b31225dd960404f744315c0c3823a7deeda43bca0256a17fc762092d7e1b"
     steps:
+      # Input: reviewed Git commit. Output: its source tree in the CI workspace.
       - name: Check out reviewed source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      # Input: pinned release and checksum. Output: verified local Terraform executable.
       - name: Install checksum-verified Terraform
         shell: bash
         run: |
@@ -28,6 +30,7 @@ jobs:
           echo "$TASK_TERRAFORM_SHA256  terraform.zip" | sha256sum -c -
           unzip -q terraform.zip
           echo "$RUNNER_TEMP/dissertation-tools" >> "$GITHUB_PATH"
+      # Input: exact scientific package versions. Output: an isolated Python environment.
       - name: Install isolated pinned ML dependencies
         shell: bash
         run: |
@@ -35,11 +38,13 @@ jobs:
           "$RUNNER_TEMP/dissertation-ml/bin/python" -m pip install --only-binary=:all: -r requirements-ml.txt
           "$RUNNER_TEMP/dissertation-ml/bin/python" -m pip check
           echo "$RUNNER_TEMP/dissertation-ml/bin" >> "$GITHUB_PATH"
+      # Input: maintained code and synthetic fixtures. Output: documentation and behavior check results.
       - name: Check Python and function descriptions
         run: |
           python3 scripts/check_function_docs.py
           python3 scripts/audit_catalog.py
           python3 -m unittest discover -s tests -v
+      # Input: Terraform declarations and mock providers. Output: offline syntax/safety test results.
       - name: Validate Terraform without backend access
         run: |
           terraform fmt -check -recursive infra

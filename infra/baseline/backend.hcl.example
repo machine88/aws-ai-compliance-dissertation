@@ -1,3 +1,6 @@
+# Purpose: supply reviewed baseline initialization or planning settings.
+# Inputs: non-secret account/region/profile/role values or explicit review variables.
+# Outputs: values consumed by Terraform; this example does not apply infrastructure.
 # Bootstrap this dedicated bucket only after the reviewed deployment plan is approved.
 bucket       = "dissertation-653464153304-us-east-2-state"
 key          = "dissertation/653464153304/us-east-2/baseline/terraform.tfstate"

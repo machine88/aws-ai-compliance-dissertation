@@ -1,4 +1,6 @@
 # Check the trust and boundary relationship without contacting AWS.
+# Supply synthetic provider responses for offline infrastructure tests.
+# Inputs: declared fixture defaults. Outputs: mock values; no AWS session or deployment is used.
 mock_provider "aws" {
   mock_resource "aws_iam_policy" {
     defaults = { arn = "arn:aws:iam::653464153304:policy/mock-policy" }
@@ -10,6 +12,8 @@ mock_provider "aws" {
     }
   }
 }
+# Check restricted role using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "restricted_role" {
   command = apply
   assert {

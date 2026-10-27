@@ -8,8 +8,16 @@ from research.ml import AdaptiveIsolationMonitor, FEATURES, FEATURE_VERSION, MAP
 
 
 def main():
-    """Retain machine-readable development parameters; this does not freeze a protocol."""
+    """Retain machine-readable development parameters; this does not freeze a protocol.
+
+    Inputs:
+        Default development ML configuration and versioned feature/mapping definitions.
+
+    Outputs:
+        None: Writes the unfrozen development ML specification JSON.
+    """
     model = AdaptiveIsolationMonitor()
+    # Export proposed parameters and known limitations without claiming a formally frozen study protocol.
     specification = {"status": "development_proposal_not_frozen", "algorithm": "IsolationForest",
         "parameters": asdict(model.config), "protocol_sha256": model.protocol_sha256,
         "feature_version": FEATURE_VERSION, "feature_order": FEATURES,

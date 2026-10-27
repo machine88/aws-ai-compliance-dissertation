@@ -1,4 +1,6 @@
 # Ohio is the reviewed implementation region; expansion requires another plan review.
+# Declare and validate the region input.
+# Inputs: caller-supplied value or stated default. Outputs: a validated value for the configuration.
 variable "region" {
   type    = string
   default = "us-east-2"
@@ -8,6 +10,8 @@ variable "region" {
   }
 }
 
+# Declare and validate the aws_profile input.
+# Inputs: caller-supplied value or stated default. Outputs: a validated value for the configuration.
 variable "aws_profile" {
   type        = string
   default     = "dissertation"
@@ -15,12 +19,16 @@ variable "aws_profile" {
 }
 
 # A deployed foundation can remain paused until the collection plan is approved.
+# Declare and validate the enable_collection input.
+# Inputs: caller-supplied value or stated default. Outputs: a validated value for the configuration.
 variable "enable_collection" {
   type        = bool
   default     = false
   description = "Starts Config and CloudTrail and subscribes to the scoped CSPM standard."
 }
 
+# Declare and validate the budget_email input.
+# Inputs: caller-supplied value or stated default. Outputs: a validated value for the configuration.
 variable "budget_email" {
   type        = string
   description = "User-selected destination for account-wide budget alerts; no address is assumed."
@@ -31,6 +39,8 @@ variable "budget_email" {
 }
 
 # Planning value only; alerts are delayed notifications and do not stop charges.
+# Declare and validate the monthly_budget_usd input.
+# Inputs: caller-supplied value or stated default. Outputs: a validated value for the configuration.
 variable "monthly_budget_usd" {
   type        = number
   default     = 100
@@ -42,6 +52,8 @@ variable "monthly_budget_usd" {
 }
 
 # These two S3 controls are instrument candidates, not a frozen scenario catalog.
+# Declare and validate the enabled_security_controls input.
+# Inputs: caller-supplied value or stated default. Outputs: a validated value for the configuration.
 variable "enabled_security_controls" {
   type    = set(string)
   default = ["S3.5", "S3.8"]

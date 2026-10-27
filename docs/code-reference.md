@@ -1,0 +1,35 @@
+# Code explanations and interfaces
+
+Every maintained Python function/method now has a concise purpose, named `Inputs:` descriptions and an `Outputs:` description covering its return and file/state effects. A function with no explicit arguments or no return value states that explicitly. Important validation, model, evidence and adaptation blocks also carry intent comments. Terraform declarations and examples explain their inputs and resulting objects; CI steps identify their inputs and outputs.
+
+For example, `AdaptiveIsolationMonitor.predict` documents the observation and mapping target it accepts, the prediction dictionary it returns, and the fact that scoring does not refit the model. The code around it explains unseen-data checks, related-group protection, evidence identity and the anomaly/technical-evidence gate. The ML configuration comments explain each parameter and the units of its bound.
+
+`scripts/check_function_docs.py` now checks for a purpose, nonempty Inputs/Outputs sections and a description for each positional, keyword-only or variable-length argument. It checks module purposes too. Three regression tests ensure that a one-line description or partially described interface cannot pass. These checks confirm structure; reviewers must still ensure the descriptions explain the behavior accurately.
+
+## JSON configuration reference
+
+JSON does not support comments. The following descriptions explain the existing documents without changing their schema, policy permissions or content hashes. These are data/configuration interfaces rather than callable functions.
+
+| File | Purpose | Inputs represented | Output or consumer |
+| --- | --- | --- | --- |
+| `protocol/proposal-constraints.json` | Retain proposal requirements and unresolved methodological choices. | Final proposal fingerprint, outcomes, power assumptions, collection requirements. | Protocol/candidate-design review; its original deployment flag is not a current infrastructure inventory. |
+| `protocol/baseline-price-snapshot.json` | Retain exact public Ohio unit rates and refresh provenance. | AWS Price List SKUs, units, publication dates and USD rates. | Decimal cost calculator and budget review; not a live bill or spend cap. |
+| `protocol/scenarios/development-s3-v0.1.json` | Describe draft conditions without expected labels. | Source references, neutral IDs, family/overlap groups, provisional strata and control candidates. | Catalog validation and readiness audit; cannot freeze this incomplete slice. |
+| `protocol/ground-truth/development-s3-v0.1.json` | Store separately authored draft expected answers. | Matching scenario IDs, expected states and stated technical facts. | Offline evaluation after paired predictions persist; never model features. |
+| `protocol/ml-development-v0.1.json` | Retain proposed model and adaptation settings. | Seed, forest size, feature order, threshold calibration, technical targets and bounded-update policy. | Engineering review and reproducible development runs; not a frozen formal-study protocol. |
+| `infra/baseline/fsbp-controls-us-east-2.json` | Pin the reviewed regional control-ID snapshot. | Available control IDs and snapshot provenance. | Terraform's explicit standard/control configuration after separately approved activation. |
+| `infra/access/generated-baseline-policy.json` | Preserve the plan-derived identity permissions. | IAM Policy Autopilot output for proposed baseline resources. | Deployment-role policy; its broad grants must remain constrained by the mandatory boundary. |
+| `infra/access/deployment-boundary.json` | Limit the maximum authority of the deployment role. | Exact account, region, resource/state-key patterns and explicitly permitted actions. | Permissions boundary on the role from creation; never a standalone grant of access. |
+| `infra/access/backend-and-read-policy.json` | Supply scoped state-backend and metadata-read permissions. | Exact baseline state/lock keys and provider read requirements. | Deployment-role policy, still limited by the boundary. |
+
+Policy JSON files are not edited to insert fake comment properties, and formal artifact or catalog hashes are not changed to carry documentation. Raw observations, state, plans, model files and private budget details remain outside Git.
+
+## Learning terms
+
+- **Input:** the values or files a function/configuration reads.
+- **Output:** its returned value and anything it writes or changes.
+- **Validation:** checks that reject incomplete, unsafe or methodologically invalid inputs.
+- **Provenance:** version/hash metadata explaining which inputs and implementation produced a result.
+- **Side effect:** a file or state change beyond the function's returned value.
+
+The scientific pipeline remains development-only and AWS collection remains paused. These explanation changes do not activate monitoring or alter research outcomes.

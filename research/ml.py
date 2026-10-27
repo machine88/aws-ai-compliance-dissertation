@@ -16,11 +16,14 @@ from research.catalog import canonical_sha256
 from research.contracts import FACTS
 from research.trials import safe_id
 
+# These versions identify the feature meaning and decision rules recorded with predictions.
 FEATURE_VERSION = "development-telemetry-v0.1"
 MAPPING_VERSION = "development-evidence-gates-v0.1"
+# Column order is fixed so training and prediction interpret every numeric input identically.
 FEATURES = ("mutation_count", "policy_change_count", "public_access_change_count",
             "versioning_change_count", "principal_count", "configuration_delta_count",
             "failed_request_fraction")
+# Each target lists the observed facts required by its technical compliance condition.
 TARGETS = {
     "S3.5": ("end.tls_deny_present",),
     "S3.8": tuple("end." + name for name in ("block_public_acls", "ignore_public_acls", "block_public_policy", "restrict_public_buckets")),
@@ -34,23 +37,45 @@ TARGETS = {
 @dataclass(frozen=True)
 class MLConfig:
     """Proposed development bounds; these are not a frozen confirmatory protocol."""
+    # Repeatable randomness for forest construction.
     seed: int = 997
+    # Number of isolation trees in each forest.
     trees: int = 128
+    # Upper limit of observations used by each tree.
     max_samples: int = 256
+    # Minimum clean training observations before a model can fit.
     min_training: int = 32
+    # Minimum separate observations used to choose the decision threshold.
     min_calibration: int = 16
+    # Upper anchor-score quantile used as the initial anomaly threshold.
     calibration_quantile: float = 0.98
+    # Maximum retained observations in the fitted/adapted pool.
     max_training_rows: int = 512
+    # Maximum newly admitted observations per accepted update.
     max_new_rows: int = 32
+    # Maximum new-row share of the resulting fitted pool; not an estimated fault rate.
     max_new_fraction: float = 0.20
+    # Total accepted updates allowed in this proposed protocol.
     max_updates: int = 4
+    # Future batch numbers at which adaptation is permitted.
     update_batches: tuple = (4, 6, 8, 10)
+    # Largest allowed threshold change in one update, in anomaly-score units.
     max_threshold_step: float = 0.025
+    # Largest threshold departure from its initial calibrated value.
     max_threshold_total: float = 0.05
+    # Largest allowed change to any fixed-anchor score before rejecting a candidate.
     max_anchor_score_shift: float = 0.15
 
     def __post_init__(self):
-        """Reject configurations that remove sample, update or threshold bounds."""
+        """Reject configurations that remove sample, update or threshold bounds.
+
+        Inputs:
+            Current immutable MLConfig fields.
+
+        Outputs:
+            None: Validates current configuration fields; invalid bounds raise ValueError.
+        """
+        # Check sample/model limits before constructing an estimator or admitting an update.
         integers = (self.seed, self.trees, self.max_samples, self.min_training,
                     self.min_calibration, self.max_training_rows, self.max_new_rows, self.max_updates)
         if any(type(value) is not int or value < 1 for value in integers):
@@ -68,13 +93,28 @@ class MLConfig:
 
 
 def runtime_versions():
-    """Record the actual scientific runtime alongside every model version."""
+    """Record the actual scientific runtime alongside every model version.
+
+    Inputs:
+        Synthetic fixtures prepared by setUp; no external services.
+
+    Outputs:
+        dict: Actual Python and scientific-package versions.
+    """
     return {"python": platform.python_version(), "sklearn": sklearn.__version__,
             "numpy": np.__version__, "scipy": scipy.__version__, "joblib": joblib.__version__}
 
 
 def validate_observation(row):
-    """Accept only label-free development metadata and observed technical inputs."""
+    """Accept only label-free development metadata and observed technical inputs.
+
+    Inputs:
+        row: One development observation containing metadata, numeric features and technical facts.
+
+    Outputs:
+        dict: Validated deep copy of the observation; malformed inputs raise ValueError.
+    """
+    # Only explicitly allowed metadata and observations can enter the model interface.
     keys = {"sample_id", "phase", "learning_role", "leakage_group_id", "batch_id", "completed", "features", "observed_facts"}
     if set(row) != keys or row["phase"] != "development":
         raise ValueError("development-only input schema; labels and extra fields forbidden")
@@ -86,6 +126,7 @@ def validate_observation(row):
         raise ValueError("explicit batch and completion state required")
     if set(row["features"]) != set(FEATURES):
         raise ValueError("fixed label-free feature schema required")
+    # Reject invalid numbers and impossible fractions before converting them to model features.
     for name, value in row["features"].items():
         if type(value) not in (int, float) or not math.isfinite(value):
             raise ValueError("finite numeric features required")
@@ -100,36 +141,73 @@ def validate_observation(row):
 
 
 def feature_matrix(rows):
-    """Convert only fixed numeric observations to log-count features in retained order."""
+    """Convert only fixed numeric observations to log-count features in retained order.
+
+    Inputs:
+        rows: Ordered development observations with the fixed input schema.
+
+    Outputs:
+        numpy.ndarray: Float32 rows in fixed feature order with log-transformed counts.
+    """
+    # Compress count ranges with log1p while preserving the failure fraction on its original scale.
     return np.asarray([[float(row["features"][name]) if name == "failed_request_fraction"
                         else math.log1p(row["features"][name]) for name in FEATURES] for row in rows], dtype=np.float32)
 
 
 def technical_verdict(facts, target):
-    """Evaluate fixed technical predicates without using scenario labels or scores."""
+    """Evaluate fixed technical predicates without using scenario labels or scores.
+
+    Inputs:
+        facts: Observed boolean technical predicates; missing predicates remain unknown.
+        target: Identifier of the predefined technical mapping to evaluate.
+
+    Outputs:
+        str: violation, satisfied or insufficient for the requested technical target.
+    """
     if target not in TARGETS:
         raise ValueError("unsupported development mapping target")
     required = TARGETS[target]
+    # One observed failed requirement proves a violation of this conjunction, even if other facts are missing.
     if any(facts.get(name) is False for name in required):
         return "violation"
+    # Compliance requires every fact; an absent fact is not evidence of compliance.
     return "satisfied" if all(facts.get(name) is True for name in required) else "insufficient"
 
 
 def map_compliance(score, threshold, facts, target):
-    """Require anomaly plus corroboration for violations; otherwise preserve unknowns."""
+    """Require anomaly plus corroboration for violations; otherwise preserve unknowns.
+
+    Inputs:
+        score: Finite anomaly score; larger values indicate greater anomaly.
+        threshold: Finite anomaly-score decision boundary.
+        facts: Observed boolean technical predicates; missing predicates remain unknown.
+        target: Identifier of the predefined technical mapping to evaluate.
+
+    Outputs:
+        str: noncompliant, compliant or unknown according to both decision gates.
+    """
     if not math.isfinite(score) or not math.isfinite(threshold):
         raise ValueError("finite score and threshold required")
+    # Combine statistical novelty with independent technical evidence instead of equating rarity with noncompliance.
     verdict = technical_verdict(facts, target)
     anomaly = score >= threshold
     if anomaly and verdict == "violation":
         return "noncompliant"
+    # Declare compliance only when the score and all required technical observations support it.
     if not anomaly and verdict == "satisfied":
         return "compliant"
     return "unknown"
 
 
 def clean_reference(row):
-    """Exclude known technical violations and incomplete state from fit/update pools."""
+    """Exclude known technical violations and incomplete state from fit/update pools.
+
+    Inputs:
+        row: One development observation containing metadata, numeric features and technical facts.
+
+    Outputs:
+        bool: Whether all required technical facts are present and true.
+    """
     return set(row["observed_facts"]) == FACTS and all(row["observed_facts"].values())
 
 
@@ -137,8 +215,16 @@ class AdaptiveIsolationMonitor:
     """Fit unlabeled observations and update only on earlier scored validation batches."""
 
     def __init__(self, config=None):
-        """Initialize immutable configuration and an empty in-memory development model."""
+        """Initialize immutable configuration and an empty in-memory development model.
+
+        Inputs:
+            config: Immutable MLConfig bounds; defaults are used when omitted.
+
+        Outputs:
+            None: Initializes monitor configuration, protocol identity and empty model state.
+        """
         self.config = config or MLConfig()
+        # Tie the monitor to its proposed parameters, feature order and technical mapping.
         self.protocol_sha256 = canonical_sha256({"config": asdict(self.config), "features": FEATURES,
             "transform": "log1p_counts_raw_fraction", "mapping": TARGETS,
             "feature_version": FEATURE_VERSION, "mapping_version": MAPPING_VERSION})
@@ -148,21 +234,48 @@ class AdaptiveIsolationMonitor:
         self.history = []
 
     def _build(self, rows):
-        """Fit a fresh forest with fixed hyperparameters and a retained random seed."""
+        """Fit a fresh forest with fixed hyperparameters and a retained random seed.
+
+        Inputs:
+            rows: Ordered development observations with the fixed input schema.
+
+        Outputs:
+            IsolationForest: Newly fitted estimator; the active monitor is not replaced here.
+        """
+        # Use the retained seed and one fitting worker to make repeated fits reproducible.
         model = IsolationForest(n_estimators=self.config.trees,
                                 max_samples=min(self.config.max_samples, len(rows)),
                                 contamination="auto", random_state=self.config.seed, n_jobs=1)
         return model.fit(feature_matrix(rows))
 
     def _scores(self, model, rows):
-        """Orient sklearn's normality scores so larger values mean more anomalous."""
+        """Orient sklearn's normality scores so larger values mean more anomalous.
+
+        Inputs:
+            model: Fitted scikit-learn IsolationForest estimator to score or fingerprint.
+            rows: Ordered development observations with the fixed input schema.
+
+        Outputs:
+            numpy.ndarray: Finite anomaly scores with larger values meaning more anomalous.
+        """
+        # Invert sklearn normality scores so our larger exported values consistently mean more anomaly.
         scores = -model.score_samples(feature_matrix(rows))
         if not np.isfinite(scores).all():
             raise ValueError("model produced nonfinite scores")
         return scores
 
     def _version(self, model, pool, threshold, generation):
-        """Hash fitted state, source inputs, parameters and runtime versions together."""
+        """Hash fitted state, source inputs, parameters and runtime versions together.
+
+        Inputs:
+            model: Fitted scikit-learn IsolationForest estimator to score or fingerprint.
+            pool: Ordered observations included in model fitting.
+            threshold: Finite anomaly-score decision boundary.
+            generation: Accepted adaptation-update number.
+
+        Outputs:
+            str: Model-version hash covering fitted tree state, inputs, configuration and runtime.
+        """
         # Hash typed node fields rather than binary serialization padding.
         trees = []
         for estimator in model.estimators_:
@@ -178,7 +291,16 @@ class AdaptiveIsolationMonitor:
             "feature_version": FEATURE_VERSION, "mapping_version": MAPPING_VERSION})
 
     def fit(self, training, calibration):
-        """Fit training only and calibrate a threshold on a separate unlabeled anchor."""
+        """Fit training only and calibrate a threshold on a separate unlabeled anchor.
+
+        Inputs:
+            training: Completed, technically clean training-role observations.
+            calibration: Separate completed validation-anchor observations.
+
+        Outputs:
+            AdaptiveIsolationMonitor: This initialized monitor, with fitted forest and calibrated threshold.
+        """
+        # Initial fitting is a one-time operation; later learning must pass the adaptation safeguards.
         if self._forest is not None:
             raise ValueError("fit once; later changes must use bounded adaptation")
         training = [validate_observation(row) for row in training]
@@ -187,18 +309,22 @@ class AdaptiveIsolationMonitor:
             raise ValueError("insufficient or excessive reference samples")
         if any(row["learning_role"] != "training" for row in training) or any(row["learning_role"] != "validation_adaptation" for row in calibration):
             raise ValueError("held-out data cannot fit or calibrate the model")
+        # Check the combined reference sets for reused sample IDs and incomplete or unsafe technical state.
         rows = training + calibration
         if len({row["sample_id"] for row in rows}) != len(rows):
             raise ValueError("reference sample IDs must be unique")
         if any(not row["completed"] or not clean_reference(row) for row in rows):
             raise ValueError("reference pool must be complete and technically clean")
+        # Related variants must not appear on both sides of the training/calibration boundary.
         train_groups = {row["leakage_group_id"] for row in training}
         if train_groups & {row["leakage_group_id"] for row in calibration}:
             raise ValueError("related groups overlap training and calibration")
+        # Learn the forest from training only, then choose its threshold using the separate validation anchor.
         model = self._build(training)
         threshold = float(np.quantile(self._scores(model, calibration), self.config.calibration_quantile, method="higher"))
         self._anchor = calibration
         version = self._version(model, training, threshold, 0)
+        # Publish the fitted state only after fitting, calibration and version construction succeed.
         self._forest, self._pool, self.threshold, self.version = model, training, threshold, version
         self._initial_threshold = threshold
         self._minimum_batch = max(row["batch_id"] for row in rows) + 1
@@ -208,20 +334,31 @@ class AdaptiveIsolationMonitor:
         return self
 
     def predict(self, row, target):
-        """Score unseen observations without updating the model or reading answer keys."""
+        """Score unseen observations without updating the model or reading answer keys.
+
+        Inputs:
+            row: One development observation containing metadata, numeric features and technical facts.
+            target: Identifier of the predefined technical mapping to evaluate.
+
+        Outputs:
+            dict: Outcome, anomaly score, threshold and all model/input version identifiers.
+        """
         if self._forest is None:
             raise ValueError("fit the model first")
         row = validate_observation(row)
         if row["learning_role"] not in {"validation_adaptation", "held_out"} or row["batch_id"] < self._minimum_batch:
             raise ValueError("observation is not an eligible unseen evaluation")
+        # Prevent fitted or calibration examples from being counted as unseen evaluation data.
         if row["sample_id"] in {x["sample_id"] for x in self._pool + self._anchor}:
             raise ValueError("fitted or calibration observation cannot count as unseen")
         group = row["leakage_group_id"]
         if group in self._groups and self._groups[group] != row["learning_role"]:
             raise ValueError("related group crosses learning roles")
+        # Bind the sample ID to unchanged evidence before retaining its monitoring determination.
         digest = canonical_sha256(row)
         if row["sample_id"] in self._scored and self._scored[row["sample_id"]]["digest"] != digest:
             raise ValueError("sample ID reused with different evidence")
+        # Score without refitting; the technical gate determines whether the score supports a compliance finding.
         score = float(self._scores(self._forest, [row])[0])
         outcome = map_compliance(score, self.threshold, row["observed_facts"], target)
         self._groups[group] = row["learning_role"]
@@ -233,11 +370,22 @@ class AdaptiveIsolationMonitor:
                 "observation_sha256": digest, "mapping_target": target}
 
     def adapt(self, observations, next_batch, receipts):
-        """Commit bounded updates from earlier completed validation data or retain old state."""
+        """Commit bounded updates from earlier completed validation data or retain old state.
+
+        Inputs:
+            observations: Earlier validation observations proposed for adaptation.
+            next_batch: Future batch number at which an update would take effect.
+            receipts: Sample IDs mapped to saved AI-prediction file paths.
+
+        Outputs:
+            str: Accepted model version; appends an audit and preserves the old model when rejected.
+        """
         if self._forest is None:
             raise ValueError("fit before adaptation")
+        # Keep the current model authoritative until every candidate-update check succeeds.
         before = self.version
         try:
+            # Permit learning only at predefined future batch boundaries and within the total update limit.
             if type(next_batch) is not int or next_batch not in self.config.update_batches or next_batch <= self._last_scored_batch or next_batch <= self._minimum_batch or self._updates >= self.config.max_updates:
                 raise ValueError("adaptation is outside the predefined future batch schedule")
             rows = [validate_observation(row) for row in observations]
@@ -246,6 +394,7 @@ class AdaptiveIsolationMonitor:
                 raise ValueError("duplicate, empty or oversized adaptation batch")
             if ids & {row["sample_id"] for row in self._pool + self._anchor}:
                 raise ValueError("adaptation would reuse fitted or calibration data")
+            # Require each proposed update observation to match a decision that was already scored and saved.
             receipt_hashes = {}
             for row in rows:
                 if row["learning_role"] != "validation_adaptation" or not row["completed"] or row["batch_id"] >= next_batch:
@@ -253,6 +402,7 @@ class AdaptiveIsolationMonitor:
                 prior = self._scored.get(row["sample_id"])
                 if not prior or prior["digest"] != canonical_sha256(row):
                     raise ValueError("score each observation before adaptation")
+                # Read the saved receipt and verify its content before trusting its version and outcome metadata.
                 envelope = json.loads(Path(receipts[row["sample_id"]]).read_text())
                 record = envelope["payload"]
                 if envelope["payload_sha256"] != canonical_sha256(record):
@@ -264,22 +414,28 @@ class AdaptiveIsolationMonitor:
                 receipt_hashes[row["sample_id"]] = canonical_sha256(envelope)
                 if not clean_reference(row):
                     raise ValueError("known violations or incomplete facts cannot enter adaptation")
+            # Limit both absolute pool size and the proportion of newly admitted observations.
             pool = self._pool + rows
             if len(pool) > self.config.max_training_rows or len(rows) / len(pool) > self.config.max_new_fraction:
                 raise ValueError("adaptation exceeds pool or contamination-fraction bounds")
+            # Train a separate candidate so a rejected fit cannot change the active forest.
             candidate = self._build(pool)
             old_scores = self._scores(self._forest, self._anchor)
             candidate_scores = self._scores(candidate, self._anchor)
+            # Use the fixed validation anchor to reject excessive score drift without consulting held-out labels.
             if float(np.max(np.abs(candidate_scores - old_scores))) > self.config.max_anchor_score_shift:
                 raise ValueError("candidate changes anchor scores beyond the rollback bound")
             raw = float(np.quantile(candidate_scores, self.config.calibration_quantile, method="higher"))
+            # Clamp threshold movement relative to both the previous threshold and the initial threshold.
             lower = max(self.threshold - self.config.max_threshold_step, self._initial_threshold - self.config.max_threshold_total)
             upper = min(self.threshold + self.config.max_threshold_step, self._initial_threshold + self.config.max_threshold_total)
             threshold = float(np.clip(raw, lower, upper))
             version = self._version(candidate, pool, threshold, self._updates + 1)
+        # Record rejection and retain the active model, fitted pool and threshold unchanged.
         except Exception as error:
             self.history.append({"accepted": False, "before": before, "next_batch": next_batch, "reason": str(error)})
             raise
+        # Commit only a fully validated candidate and retain the receipts supporting its update.
         self._forest, self._pool, self.threshold, self.version = candidate, pool, threshold, version
         self._updates += 1
         self._minimum_batch = next_batch
@@ -289,13 +445,22 @@ class AdaptiveIsolationMonitor:
         return version
 
     def save_artifact(self, destination):
-        """Retain fitted state, unlabeled source inputs and a checksummed version manifest."""
+        """Retain fitted state, unlabeled source inputs and a checksummed version manifest.
+
+        Inputs:
+            destination: New output path; existing output must not be overwritten.
+
+        Outputs:
+            dict: Artifact manifest; also writes fitted trees and unlabeled sources to a new directory.
+        """
         if self._forest is None:
             raise ValueError("no fitted model to save")
         destination = Path(destination)
+        # Refuse existing artifact directories so earlier fitted models and their provenance remain intact.
         destination.mkdir(parents=True, exist_ok=False)
         model_path = destination / "forest.joblib"
         joblib.dump(self._forest, model_path, compress=3)
+        # Store enough parameters, source identity and checksums to identify this exact fitted model.
         manifest = {"status": "development_only_not_frozen", "model_version": self.version,
                     "feature_version": FEATURE_VERSION, "mapping_version": MAPPING_VERSION,
                     "protocol_sha256": self.protocol_sha256, "config": asdict(self.config), "threshold": self.threshold,
@@ -305,6 +470,7 @@ class AdaptiveIsolationMonitor:
                     "history": self.history}
         (destination / "manifest.json").write_text(json.dumps(manifest, indent=2, allow_nan=False) + "\n")
         (destination / "source-observations.json").write_text(json.dumps({"training": self._pool, "calibration": self._anchor}, indent=2) + "\n")
+        # Keep model files and their source observations private on the local filesystem.
         for path in destination.iterdir():
             os.chmod(path, 0o600)
         return manifest

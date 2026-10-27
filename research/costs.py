@@ -3,10 +3,19 @@ from decimal import Decimal, InvalidOperation
 
 
 def estimate_cost(usage, rates):
-    """Multiply named nonnegative usage by matching rates and return auditable costs."""
+    """Multiply named nonnegative usage by matching rates and return auditable costs.
+
+    Inputs:
+        usage: Named nonnegative usage quantities.
+        rates: Matching per-unit USD prices.
+
+    Outputs:
+        dict: Auditable per-category costs and exact total expressed as decimal strings.
+    """
     if set(usage) != set(rates):
         raise ValueError("Usage must match every rate key; missing costs are not zero")
     costs = {}
+    # Use named quantities and Decimal arithmetic to avoid hidden categories or floating-point cost errors.
     for name, quantity in usage.items():
         try:
             quantity = Decimal(str(quantity))

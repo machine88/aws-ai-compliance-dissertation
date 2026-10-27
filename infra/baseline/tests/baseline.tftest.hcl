@@ -1,4 +1,6 @@
 # All plans use a mock provider: no credentials, service changes or AWS charges.
+# Supply synthetic provider responses for offline infrastructure tests.
+# Inputs: declared fixture defaults. Outputs: mock values; no AWS session or deployment is used.
 mock_provider "aws" {
   override_during = plan
   mock_data "aws_caller_identity" {
@@ -22,6 +24,8 @@ mock_provider "aws" {
   }
 }
 
+# Supply synthetic provider responses for offline infrastructure tests.
+# Inputs: declared fixture defaults. Outputs: mock values; no AWS session or deployment is used.
 mock_provider "aws" {
   alias = "billing"
 }
@@ -31,6 +35,8 @@ variables {
 }
 
 # Paused collection remains the default and every evidence bucket setting stays protective.
+# Check paused and private by default using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "paused_and_private_by_default" {
   command = plan
   assert {
@@ -48,6 +54,8 @@ run "paused_and_private_by_default" {
 }
 
 # Baseline control coverage is explicitly scoped; unrelated standard controls stay disabled.
+# Check collection scope and delivery policies using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "collection_scope_and_delivery_policies" {
   command = plan
   variables {
@@ -76,6 +84,8 @@ run "collection_scope_and_delivery_policies" {
 }
 
 # Account and input failures must stop planning rather than silently broadening scope.
+# Check reject root using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "reject_root" {
   command = plan
   override_data {
@@ -84,6 +94,8 @@ run "reject_root" {
   }
   expect_failures = [terraform_data.identity_guard]
 }
+# Check reject wrong account using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "reject_wrong_account" {
   command = plan
   override_data {
@@ -92,11 +104,15 @@ run "reject_wrong_account" {
   }
   expect_failures = [terraform_data.identity_guard]
 }
+# Check reject other region using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "reject_other_region" {
   command = plan
   variables { region = "us-west-2" }
   expect_failures = [var.region]
 }
+# Check reject unreviewed control using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "reject_unreviewed_control" {
   command = plan
   variables { enabled_security_controls = ["EC2.1"] }
@@ -104,6 +120,8 @@ run "reject_unreviewed_control" {
 }
 
 # Even a valid account user must not bypass the bounded deployment role.
+# Check reject unbounded user using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "reject_unbounded_user" {
   command = plan
   override_data {

@@ -17,23 +17,55 @@ class MLTests(unittest.TestCase):
     """Verify real model behavior without AWS data, ground-truth labels or cloud APIs."""
 
     def setUp(self):
-        """Prepare reproducible, disjoint synthetic fit and calibration partitions."""
+        """Prepare reproducible, disjoint synthetic fit and calibration partitions.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Stores fresh synthetic test fixtures on this test instance.
+        """
         self.training = synthetic_rows(64, "training", 0, 997, "train")
         self.anchor = synthetic_rows(32, "validation_adaptation", 1, 998, "anchor")
         self.config = MLConfig(trees=32)
 
     def fitted(self):
-        """Fit a small actual forest for an isolated test case."""
+        """Fit a small actual forest for an isolated test case.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            AdaptiveIsolationMonitor: Deterministically fitted test monitor.
+        """
         return AdaptiveIsolationMonitor(self.config).fit(self.training, self.anchor)
 
     def update_rows(self, model, root, count=8, batch=3, prefix="update"):
-        """Score and persist eligible prior validation decisions before adaptation."""
+        """Score and persist eligible prior validation decisions before adaptation.
+
+        Inputs:
+            model: Fitted AdaptiveIsolationMonitor whose score and saved provenance are used here.
+            root: Root directory for repository files or private evidence.
+            count: Number of synthetic observations to generate.
+            batch: Experimental batch number for the synthetic fixture.
+            prefix: Safe prefix making synthetic sample IDs unique.
+
+        Outputs:
+            tuple: Synthetic validation rows and their saved AI-decision receipt paths.
+        """
         rows = synthetic_rows(count, "validation_adaptation", batch, 999, prefix)
         receipts = {row["sample_id"]: persist_ai(root, model, row, model.predict(row, "S3.5")) for row in rows}
         return rows, receipts
 
     def test_features_and_versions_are_reproducible(self):
-        """Train deterministically and retain identical scores and fitted-state versions."""
+        """Train deterministically and retain identical scores and fitted-state versions.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         first, second = self.fitted(), self.fitted()
         probe = synthetic_rows(1, "held_out", 2, 1000, "probe")[0]
         self.assertEqual(first.version, second.version)
@@ -41,14 +73,28 @@ class MLTests(unittest.TestCase):
         self.assertEqual(feature_matrix([probe]).shape, (1, 7))
 
     def test_score_orientation_matches_sklearn(self):
-        """Confirm larger exported scores mean greater anomaly, using actual estimator output."""
+        """Confirm larger exported scores mean greater anomaly, using actual estimator output.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = self.fitted()
         probe = synthetic_rows(1, "held_out", 2, 1000, "probe")[0]
         expected = -float(model._forest.score_samples(feature_matrix([probe]))[0])
         self.assertAlmostEqual(model.predict(probe, "S3.5")["anomaly_score"], expected)
 
     def test_mapping_requires_anomaly_and_evidence(self):
-        """Refuse to turn benign anomalies, missing facts or low-scoring violations into detections."""
+        """Refuse to turn benign anomalies, missing facts or low-scoring violations into detections.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         self.assertEqual(map_compliance(.8, .6, {"end.tls_deny_present": False}, "S3.5"), "noncompliant")
         self.assertEqual(map_compliance(.8, .6, {"end.tls_deny_present": True}, "S3.5"), "unknown")
         self.assertEqual(map_compliance(.4, .6, {"end.tls_deny_present": False}, "S3.5"), "unknown")
@@ -57,7 +103,14 @@ class MLTests(unittest.TestCase):
         self.assertEqual(map_compliance(.8, .6, {"middle.tls_deny_present": False}, "S3_TLS_VERSIONING_WINDOW"), "noncompliant")
 
     def test_label_nan_and_formal_inputs_are_rejected(self):
-        """Block answer-key fields, nonfinite features and pilot/confirmatory use."""
+        """Block answer-key fields, nonfinite features and pilot/confirmatory use.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         for change in ("label", "nan", "formal"):
             row = copy.deepcopy(self.training[0])
             if change == "label":
@@ -70,7 +123,14 @@ class MLTests(unittest.TestCase):
                 validate_observation(row)
 
     def test_heldout_and_overlapping_fit_partitions_are_rejected(self):
-        """Exclude held-out rows and related calibration groups before fitting."""
+        """Exclude held-out rows and related calibration groups before fitting.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         self.training[0]["learning_role"] = "held_out"
         with self.assertRaisesRegex(ValueError, "held-out"):
             self.fitted()
@@ -80,7 +140,14 @@ class MLTests(unittest.TestCase):
             self.fitted()
 
     def test_unseen_means_not_previously_fitted_or_calibrated(self):
-        """Refuse evaluation that reuses fit data, calibration data or a training group."""
+        """Refuse evaluation that reuses fit data, calibration data or a training group.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = self.fitted()
         for original in (self.training[0], self.anchor[0]):
             row = copy.deepcopy(original)
@@ -93,7 +160,14 @@ class MLTests(unittest.TestCase):
             model.predict(row, "S3.5")
 
     def test_bounded_adaptation_uses_persisted_earlier_validation(self):
-        """Version an accepted update and enforce step, cumulative and replay bounds."""
+        """Version an accepted update and enforce step, cumulative and replay bounds.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = self.fitted()
         before, threshold = model.version, model.threshold
         with tempfile.TemporaryDirectory() as root:
@@ -109,7 +183,14 @@ class MLTests(unittest.TestCase):
                 model.predict(rows[0], "S3.5")
 
     def test_current_heldout_and_unrecorded_updates_are_rejected(self):
-        """Prevent adapting on current batches, held-out observations or unsaved predictions."""
+        """Prevent adapting on current batches, held-out observations or unsaved predictions.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         for kind in ("current", "heldout", "unrecorded"):
             model = self.fitted()
             with tempfile.TemporaryDirectory() as root:
@@ -126,7 +207,14 @@ class MLTests(unittest.TestCase):
                 self.assertEqual(old, model.version)
 
     def test_contamination_and_oversized_updates_are_rejected(self):
-        """Keep known violations and excessive new data out of the adaptive pool."""
+        """Keep known violations and excessive new data out of the adaptive pool.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = self.fitted()
         rows = synthetic_rows(33, "validation_adaptation", 3, 999, "big")
         with self.assertRaisesRegex(ValueError, "oversized"):
@@ -139,7 +227,14 @@ class MLTests(unittest.TestCase):
                 model.adapt(rows, 4, {rows[0]["sample_id"]: receipt})
 
     def test_anchor_drift_rejection_retains_old_state(self):
-        """Roll back a real candidate that exceeds the prespecified anchor-score bound."""
+        """Roll back a real candidate that exceeds the prespecified anchor-score bound.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = AdaptiveIsolationMonitor(MLConfig(trees=32, max_anchor_score_shift=0.000001)).fit(self.training, self.anchor)
         with tempfile.TemporaryDirectory() as root:
             rows, receipts = self.update_rows(model, root)
@@ -149,7 +244,14 @@ class MLTests(unittest.TestCase):
             self.assertEqual((model.version, model.threshold), (version, threshold))
 
     def test_new_data_fraction_and_update_count_are_bounded(self):
-        """Enforce proportional intake and total update limits independently of batch size."""
+        """Enforce proportional intake and total update limits independently of batch size.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = AdaptiveIsolationMonitor(self.config).fit(self.training[:32], self.anchor)
         with tempfile.TemporaryDirectory() as root:
             rows, receipts = self.update_rows(model, root, count=9)
@@ -164,7 +266,14 @@ class MLTests(unittest.TestCase):
                 model.adapt(later, 6, later_receipts)
 
     def test_failed_candidate_retains_old_model(self):
-        """Preserve fitted state when candidate training fails before commit."""
+        """Preserve fitted state when candidate training fails before commit.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = self.fitted()
         with tempfile.TemporaryDirectory() as root:
             rows, receipts = self.update_rows(model, root)
@@ -176,7 +285,14 @@ class MLTests(unittest.TestCase):
             self.assertFalse(model.history[-1]["accepted"])
 
     def test_artifact_is_checksummed_and_not_overwritten(self):
-        """Save actual fitted trees and reproducibility inputs in a new private directory."""
+        """Save actual fitted trees and reproducibility inputs in a new private directory.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         model = self.fitted()
         with tempfile.TemporaryDirectory() as root:
             destination = Path(root) / "artifact"
@@ -188,7 +304,14 @@ class MLTests(unittest.TestCase):
                 model.save_artifact(destination)
 
     def test_smoke_run_is_explicitly_synthetic(self):
-        """Run real fit, adaptation and artifact export without claiming study performance."""
+        """Run real fit, adaptation and artifact export without claiming study performance.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with tempfile.TemporaryDirectory() as root:
             summary = run_smoke(Path(root) / "smoke")
             self.assertTrue(summary["synthetic_only"])

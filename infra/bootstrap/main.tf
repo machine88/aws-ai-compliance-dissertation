@@ -1,4 +1,6 @@
 # Bootstrap state is isolated in the approved protected S3 bucket.
+# Select compatible tools, provider versions and isolated state storage.
+# Inputs: version constraints and non-secret backend settings. Outputs: the initialization/state configuration.
 terraform {
   required_version = "~> 1.15.0"
   required_providers {
@@ -19,6 +21,8 @@ terraform {
   }
 }
 
+# Configure the explicit provisioning session in the reviewed account and region.
+# Inputs: local profile, region and any declared role settings. Outputs: the authenticated client used by this provider alias.
 provider "aws" {
   region              = "us-east-2"
   profile             = "dissertation"
@@ -28,9 +32,13 @@ provider "aws" {
   }
 }
 
+# Read the selected AWS caller identity without creating resources.
+# Inputs: the configured provider session. Outputs: account ID, caller ARN and user identifier.
 data "aws_caller_identity" "current" {}
 
 # Root cannot provision state storage even in the correct account.
+# Stop unsafe identities before resource provisioning begins.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "terraform_data" "identity_guard" {
   input = data.aws_caller_identity.current.account_id
   lifecycle {
@@ -41,6 +49,8 @@ resource "terraform_data" "identity_guard" {
   }
 }
 
+# Create a separately named protected S3 bucket.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket" "state" {
   bucket        = "dissertation-653464153304-us-east-2-state"
   force_destroy = false
@@ -50,6 +60,8 @@ resource "aws_s3_bucket" "state" {
   depends_on = [terraform_data.identity_guard]
 }
 
+# Block public bucket and object access.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_public_access_block" "state" {
   bucket                  = aws_s3_bucket.state.id
   block_public_acls       = true
@@ -58,6 +70,8 @@ resource "aws_s3_bucket_public_access_block" "state" {
   restrict_public_buckets = true
 }
 
+# Keep bucket ownership enforced and ACL-based ownership disabled.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_ownership_controls" "state" {
   bucket = aws_s3_bucket.state.id
   rule {
@@ -65,6 +79,8 @@ resource "aws_s3_bucket_ownership_controls" "state" {
   }
 }
 
+# Retain previous object versions for recovery.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_versioning" "state" {
   bucket = aws_s3_bucket.state.id
   versioning_configuration {
@@ -72,6 +88,8 @@ resource "aws_s3_bucket_versioning" "state" {
   }
 }
 
+# Configure encryption at rest and retain the SSE-C block.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
   bucket = aws_s3_bucket.state.id
   rule {
@@ -85,6 +103,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
 }
 
 # Lock objects live beside each state key; TLS is required for both kinds of objects.
+# Restrict bucket access and enforce the reviewed delivery/TLS conditions.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_policy" "state" {
   bucket = aws_s3_bucket.state.id
   policy = jsonencode({
@@ -98,6 +118,8 @@ resource "aws_s3_bucket_policy" "state" {
   depends_on = [aws_s3_bucket_public_access_block.state]
 }
 
+# Expose state_bucket for verification and downstream tooling.
+# Inputs: the referenced resource attribute or protocol value. Outputs: this named Terraform result.
 output "state_bucket" {
   value = aws_s3_bucket.state.id
 }

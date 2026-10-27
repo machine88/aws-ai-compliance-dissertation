@@ -9,7 +9,14 @@ from research.costs import estimate_cost
 
 
 def main():
-    """Calculate labeled example costs without collecting AWS usage or billing data."""
+    """Calculate labeled example costs without collecting AWS usage or billing data.
+
+    Inputs:
+        Retained price snapshot and explicitly stated example usage quantities.
+
+    Outputs:
+        None: Prints exact assumed-usage cost examples as JSON.
+    """
     root = Path(__file__).resolve().parents[1]
     rates = json.loads((root / "protocol/baseline-price-snapshot.json").read_text())["rates"]
     examples = {
