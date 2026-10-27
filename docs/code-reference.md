@@ -35,3 +35,7 @@ Policy JSON files are not edited to insert fake comment properties, and formal a
 The scientific pipeline remains development-only and AWS collection remains paused. These explanation changes do not activate monitoring or alter research outcomes.
 
 The offline controller adds a retained design record and pairs bound to catalog, assignment and predeclared answer-key hashes. See `development-controller.md` for each interface and its outputs. These private run files stay under ignored evidence storage.
+
+## Read-only development collector
+
+`requirements-aws.txt` pins the SDK and temporary-login runtime. `research/aws_reader.py` defines the fixed read scope and encrypted archive. `scripts/collect_snapshot.py` accepts a reader profile, one approved bucket, a new output directory, a public certificate and an optional pagination bound. It outputs encrypted development observations and a count/status summary. `--plan` outputs requests only, without credentials or AWS calls. See `docs/read-only-collectors.md` for scope and limitations.
