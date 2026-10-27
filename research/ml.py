@@ -1,7 +1,6 @@
 """Development-only Isolation Forest, evidence-gated mapping and bounded batch adaptation."""
 import copy
 import hashlib
-import io
 import math
 import os
 import platform
@@ -164,9 +163,15 @@ class AdaptiveIsolationMonitor:
 
     def _version(self, model, pool, threshold, generation):
         """Hash fitted state, source inputs, parameters and runtime versions together."""
-        buffer = io.BytesIO()
-        joblib.dump(model, buffer)
-        return canonical_sha256({"forest_sha256": hashlib.sha256(buffer.getvalue()).hexdigest(),
+        # Hash typed node fields rather than binary serialization padding.
+        trees = []
+        for estimator in model.estimators_:
+            state = estimator.tree_.__getstate__()
+            trees.append({"nodes": {name: state["nodes"][name].tolist() for name in state["nodes"].dtype.names},
+                          "values": state["values"].tolist()})
+        fitted = {"trees": trees, "max_samples": int(model.max_samples_),
+                  "features": [values.tolist() for values in model.estimators_features_]}
+        return canonical_sha256({"forest_sha256": canonical_sha256(fitted), "protocol_sha256": self.protocol_sha256,
             "training_sha256": canonical_sha256(pool), "calibration_sha256": canonical_sha256(self._anchor),
             "config": asdict(self.config), "threshold": threshold, "generation": generation,
             "runtime": runtime_versions(),
