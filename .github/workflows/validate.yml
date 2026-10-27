@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           python3 -m venv "$RUNNER_TEMP/dissertation-ml"
-          "$RUNNER_TEMP/dissertation-ml/bin/python" -m pip install --only-binary=:all: -r requirements-ml.txt
+          "$RUNNER_TEMP/dissertation-ml/bin/python" -m pip install --only-binary=:all: -r requirements-ml.txt -r requirements-aws.txt
           "$RUNNER_TEMP/dissertation-ml/bin/python" -m pip check
           echo "$RUNNER_TEMP/dissertation-ml/bin" >> "$GITHUB_PATH"
       # Input: maintained code and synthetic fixtures. Output: documentation and behavior check results.
