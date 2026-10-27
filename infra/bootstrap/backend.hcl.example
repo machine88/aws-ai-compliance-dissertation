@@ -1,0 +1,9 @@
+# Use only after approval and replacing the local backend with backend "s3" {}.
+bucket = "dissertation-653464153304-us-east-2-state"
+key = "dissertation/653464153304/us-east-2/bootstrap/terraform.tfstate"
+region = "us-east-2"
+profile = "dissertation"
+allowed_account_ids = ["653464153304"]
+encrypt = true
+use_lockfile = true
+workspace_key_prefix = "dissertation/653464153304/us-east-2/bootstrap/workspaces"
