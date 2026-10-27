@@ -27,3 +27,10 @@ class EvidenceTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 preflight.main()
             self.assertEqual(mock.call_count, 1)
+
+    def test_root_session_stops_inventory(self):
+        """Reject a root login before any account inventory requests are made."""
+        with patch("sys.argv", ["preflight", "--profile", "fixture", "--region", "us-east-2"]), patch.object(preflight, "aws", return_value={"Account": "653464153304", "Arn": "arn:aws:iam::653464153304:root"}) as mock:
+            with self.assertRaises(SystemExit):
+                preflight.main()
+            self.assertEqual(mock.call_count, 1)
