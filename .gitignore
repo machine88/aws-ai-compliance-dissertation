@@ -50,3 +50,6 @@ evidence/
 *.plan
 .env
 *.pem
+
+# Fitted models and their source observations belong in private evidence storage.
+*.joblib

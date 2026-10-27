@@ -1,0 +1,84 @@
+{
+  "status": "development_proposal_not_frozen",
+  "algorithm": "IsolationForest",
+  "parameters": {
+    "seed": 997,
+    "trees": 128,
+    "max_samples": 256,
+    "min_training": 32,
+    "min_calibration": 16,
+    "calibration_quantile": 0.98,
+    "max_training_rows": 512,
+    "max_new_rows": 32,
+    "max_new_fraction": 0.2,
+    "max_updates": 4,
+    "update_batches": [
+      4,
+      6,
+      8,
+      10
+    ],
+    "max_threshold_step": 0.025,
+    "max_threshold_total": 0.05,
+    "max_anchor_score_shift": 0.15
+  },
+  "protocol_sha256": "5182fb4872946fb67c6d04729ba9ef5473b5fe1237563a7025d40d05e92dd47b",
+  "feature_version": "development-telemetry-v0.1",
+  "feature_order": [
+    "mutation_count",
+    "policy_change_count",
+    "public_access_change_count",
+    "versioning_change_count",
+    "principal_count",
+    "configuration_delta_count",
+    "failed_request_fraction"
+  ],
+  "transformation": "log1p on six count features; unscaled failed-request fraction",
+  "score_orientation": "negative sklearn score_samples; higher means more anomalous",
+  "threshold": "higher empirical quantile of separate unlabeled validation anchor scores",
+  "mapping_version": "development-evidence-gates-v0.1",
+  "technical_targets": {
+    "S3.5": [
+      "end.tls_deny_present"
+    ],
+    "S3.8": [
+      "end.block_public_acls",
+      "end.ignore_public_acls",
+      "end.block_public_policy",
+      "end.restrict_public_buckets"
+    ],
+    "S3.14": [
+      "end.versioning_enabled"
+    ],
+    "S3_TLS_ACCESS": [
+      "end.tls_deny_present",
+      "end.block_public_acls",
+      "end.ignore_public_acls",
+      "end.block_public_policy",
+      "end.restrict_public_buckets"
+    ],
+    "S3_VERSIONING_WINDOW": [
+      "start.versioning_enabled",
+      "middle.versioning_enabled",
+      "end.versioning_enabled"
+    ],
+    "S3_TLS_VERSIONING_WINDOW": [
+      "start.tls_deny_present",
+      "start.versioning_enabled",
+      "middle.tls_deny_present",
+      "middle.versioning_enabled",
+      "end.tls_deny_present",
+      "end.versioning_enabled"
+    ]
+  },
+  "adaptation_intake": "previous completed development validation batches with saved AI receipts and complete technically clean state",
+  "normal_reference_guard": "all proposed start/middle/end technical predicates present and true; not independent ground truth",
+  "limits": [
+    "No AWS collector or real observations",
+    "No pilot or confirmatory use",
+    "No held-out updates",
+    "No ground-truth labels in model input",
+    "No claim that synthetic outputs estimate research performance",
+    "Catalog manifest/controller and scientific freeze integrations pending"
+  ]
+}

@@ -1,3 +1,4 @@
+"""Synthetic regression checks for test_evidence."""
 import json
 import tempfile
 import unittest
@@ -8,7 +9,14 @@ from scripts import preflight
 class EvidenceTests(unittest.TestCase):
     """Check evidence isolation and the account guard without contacting AWS."""
     def test_partition_and_overwrite_protection(self):
-        """Keep matching trial IDs in separate phases and reject repeated writes."""
+        """Keep matching trial IDs in separate phases and reject repeated writes.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with tempfile.TemporaryDirectory() as root:
             pilot = write_evidence(root, "pilot", "trial-1", {"fixture": True}, "a" * 64)
             confirmatory = write_evidence(root, "confirmatory", "trial-1", {"fixture": True}, "a" * 64)
@@ -17,19 +25,40 @@ class EvidenceTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_evidence(root, "pilot", "trial-1", {}, "a" * 64)
     def test_reject_invalid_metadata(self):
-        """Reject invalid phases, unsafe trial paths and missing protocol hashes."""
+        """Reject invalid phases, unsafe trial paths and missing protocol hashes.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         for partition, trial, sha in [("other", "x", "a"*64), ("pilot", "../x", "a"*64), ("pilot", "x", "missing")]:
             with self.assertRaises(ValueError):
                 write_evidence("unused", partition, trial, {}, sha)
     def test_wrong_account_stops_inventory(self):
-        """Stop after identity verification when the AWS account does not match."""
+        """Stop after identity verification when the AWS account does not match.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with patch("sys.argv", ["preflight", "--profile", "fixture", "--region", "us-east-1"]), patch.object(preflight, "aws", return_value={"Account": "000000000000"}) as mock:
             with self.assertRaises(SystemExit):
                 preflight.main()
             self.assertEqual(mock.call_count, 1)
 
     def test_root_session_stops_inventory(self):
-        """Reject a root login before any account inventory requests are made."""
+        """Reject a root login before any account inventory requests are made.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with patch("sys.argv", ["preflight", "--profile", "fixture", "--region", "us-east-2"]), patch.object(preflight, "aws", return_value={"Account": "653464153304", "Arn": "arn:aws:iam::653464153304:root"}) as mock:
             with self.assertRaises(SystemExit):
                 preflight.main()

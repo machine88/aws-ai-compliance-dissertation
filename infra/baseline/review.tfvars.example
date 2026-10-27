@@ -1,3 +1,6 @@
+# Purpose: supply reviewed baseline initialization or planning settings.
+# Inputs: non-secret account/region/profile/role values or explicit review variables.
+# Outputs: values consumed by Terraform; this example does not apply infrastructure.
 # Example proposal only; replace the alert destination and review costs before deployment.
 region                    = "us-east-2"
 aws_profile               = "dissertation"

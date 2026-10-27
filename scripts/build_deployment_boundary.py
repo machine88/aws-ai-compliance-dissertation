@@ -4,7 +4,17 @@ from pathlib import Path
 
 
 def allow(sid, actions, resources, condition=None):
-    """Describe one explicitly scoped allowance in the permissions boundary."""
+    """Describe one explicitly scoped allowance in the permissions boundary.
+
+    Inputs:
+        sid: Unique IAM statement identifier.
+        actions: AWS IAM action names allowed by this statement.
+        resources: Resource ARNs to which the allowance applies.
+        condition: Optional IAM condition restricting the allowance.
+
+    Outputs:
+        dict: One scoped IAM Allow statement.
+    """
     statement = {"Sid": sid, "Effect": "Allow", "Action": actions, "Resource": resources}
     if condition:
         statement["Condition"] = condition
@@ -12,7 +22,15 @@ def allow(sid, actions, resources, condition=None):
 
 
 def build_boundary(account="653464153304", region="us-east-2"):
-    """Limit generated permissions to baseline provisioning and its isolated state key."""
+    """Limit generated permissions to baseline provisioning and its isolated state key.
+
+    Inputs:
+        account: Expected AWS account identifier.
+        region: Explicit AWS region.
+
+    Outputs:
+        dict: Complete proposed maximum-permissions policy; makes no AWS changes.
+    """
     telemetry = f"arn:aws:s3:::dissertation-research-{account}-{region}-logs"
     state = f"arn:aws:s3:::dissertation-{account}-{region}-state"
     key = f"dissertation/{account}/{region}/baseline/terraform.tfstate"
@@ -50,7 +68,14 @@ def build_boundary(account="653464153304", region="us-east-2"):
 
 
 def main():
-    """Write a reproducible boundary for review; this script never calls AWS."""
+    """Write a reproducible boundary for review; this script never calls AWS.
+
+    Inputs:
+        Reviewed account/region defaults and the repository output directory.
+
+    Outputs:
+        None: Writes the proposed boundary JSON and prints its size.
+    """
     root = Path(__file__).resolve().parents[1]
     path = root / "infra/access/deployment-boundary.json"
     path.parent.mkdir(parents=True, exist_ok=True)

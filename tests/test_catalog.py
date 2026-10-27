@@ -15,19 +15,40 @@ class CatalogTests(unittest.TestCase):
     """Protect balance, provenance, family grouping and pre-pilot freeze gates."""
 
     def setUp(self):
-        """Load the separate development definitions and answer key."""
+        """Load the separate development definitions and answer key.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Stores fresh synthetic test fixtures on this test instance.
+        """
         self.catalog = json.loads((ROOT / "protocol/scenarios/development-s3-v0.1.json").read_text())
         self.truth = json.loads((ROOT / "protocol/ground-truth/development-s3-v0.1.json").read_text())
 
     def independent_fixture(self):
-        """Construct synthetic independence groups solely to exercise assignment logic."""
+        """Construct synthetic independence groups solely to exercise assignment logic.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            dict: Copied catalog with synthetic independence groups for contract tests only.
+        """
         catalog = copy.deepcopy(self.catalog)
         for row in catalog["scenarios"]:
             row["leakage_group_id"] = "fixture-group-" + str((int(row["family_id"][1:]) - 1) % 3)
         return catalog
 
     def test_balanced_design_and_separate_labels(self):
-        """Keep each label-by-stratum cell balanced and answers out of catalog rows."""
+        """Keep each label-by-stratum cell balanced and answers out of catalog rows.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         result = validate_catalog(self.catalog, self.truth)
         self.assertEqual(result["scenarios"], 12)
         self.assertEqual(set(result["cell_counts"].values()), {3})
@@ -36,7 +57,14 @@ class CatalogTests(unittest.TestCase):
             validate_catalog(self.catalog, self.truth)
 
     def test_missing_or_wrong_truth_is_rejected(self):
-        """Reject incomplete answer keys and changed proposal provenance."""
+        """Reject incomplete answer keys and changed proposal provenance.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         del self.truth["entries"]["S001"]
         with self.assertRaises(ValueError):
             validate_catalog(self.catalog, self.truth)
@@ -46,7 +74,14 @@ class CatalogTests(unittest.TestCase):
             validate_catalog(self.catalog, self.truth)
 
     def test_changed_window_and_unsupported_truth_are_rejected(self):
-        """Keep the proposal's observation horizon and technical fact schema fixed."""
+        """Keep the proposal's observation horizon and technical fact schema fixed.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         self.catalog["observation_window_seconds"] = 60
         with self.assertRaisesRegex(ValueError, "1800-second"):
             validate_catalog(self.catalog, self.truth)
@@ -56,12 +91,26 @@ class CatalogTests(unittest.TestCase):
             validate_catalog(self.catalog, self.truth)
 
     def test_overlap_cannot_be_disguised_as_holdout(self):
-        """Block three-way splitting of the current overlapping S3 design slice."""
+        """Block three-way splitting of the current overlapping S3 design slice.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with self.assertRaisesRegex(ValueError, "independent leakage groups"):
             assign_learning_roles(self.catalog, 997)
 
     def test_reproducible_assignment_and_leakage_rejection(self):
-        """Retain deterministic assignments and reject a related variant moved to holdout."""
+        """Retain deterministic assignments and reject a related variant moved to holdout.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         catalog = self.independent_fixture()
         assignment = assign_learning_roles(catalog, 997)
         self.assertEqual(assignment, assign_learning_roles(catalog, 997))
@@ -72,7 +121,14 @@ class CatalogTests(unittest.TestCase):
             validate_assignments(catalog, assignment)
 
     def test_manifest_tamper_is_rejected(self):
-        """Detect a changed catalog rather than reuse its old partition assignments."""
+        """Detect a changed catalog rather than reuse its old partition assignments.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         catalog = self.independent_fixture()
         assignment = assign_learning_roles(catalog, 997)
         catalog["scenarios"][0]["condition"] = "modified"
@@ -80,7 +136,14 @@ class CatalogTests(unittest.TestCase):
             validate_assignments(catalog, assignment)
 
     def test_incomplete_catalog_cannot_freeze(self):
-        """Require proposal-wide service coverage and verified assessment mappings."""
+        """Require proposal-wide service coverage and verified assessment mappings.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         catalog = self.independent_fixture()
         assignment = assign_learning_roles(catalog, 997)
         self.assertTrue(readiness_errors(catalog))
@@ -94,19 +157,42 @@ class TrialTests(unittest.TestCase):
     """Keep labels out of inputs and prevent evaluation before paired outputs persist."""
 
     def provenance(self, scenario="S001", observation="b" * 64):
-        """Create minimal version metadata for synthetic monitor outputs."""
+        """Create minimal version metadata for synthetic monitor outputs.
+
+        Inputs:
+            scenario: Synthetic scenario identifier.
+            observation: Synthetic observation SHA-256.
+
+        Outputs:
+            dict: Complete synthetic version and observation-hash metadata.
+        """
         return {"model_version": "fixture-model", "feature_version": "fixture-features",
                 "mapping_version": "fixture-mapping", "adaptation_version": "none",
                 "observation_sha256": observation, "scenario_id": scenario}
 
     def write_pair(self, root, second_hash="b" * 64):
-        """Persist synthetic paired decisions with a shared or deliberately changed input."""
+        """Persist synthetic paired decisions with a shared or deliberately changed input.
+
+        Inputs:
+            root: Root directory for repository files or private evidence.
+            second_hash: Observation hash for the second synthetic monitor; change it to test mismatch detection.
+
+        Outputs:
+            None: Writes both synthetic predictions; errors propagate for invalid or repeated records.
+        """
         for monitor, outcome, sha in [("baseline", "unknown", "b" * 64), ("ai", "noncompliant", second_hash)]:
             write_prediction(root, "development", "held_out", "T001", "F01", monitor,
                              outcome, self.provenance(observation=sha), "a" * 64)
 
     def test_monitor_inputs_reject_labels_and_nested_metadata(self):
-        """Accept observed booleans while refusing answer keys and nested label payloads."""
+        """Accept observed booleans while refusing answer keys and nested label payloads.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         observed = {"end.tls_deny_present": True}
         self.assertEqual(monitor_input("R001", observed)["observed_facts"], observed)
         for bad in [{"expected": "compliant"}, {"end.tls_deny_present": {"label": True}}]:
@@ -114,7 +200,14 @@ class TrialTests(unittest.TestCase):
                 monitor_input("R001", bad)
 
     def test_join_requires_both_outputs_and_preserves_unknown(self):
-        """Keep absent baseline determinations explicit after both records are saved."""
+        """Keep absent baseline determinations explicit after both records are saved.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaises(FileNotFoundError):
                 join_for_evaluation(directory, "development", "held_out", "T001", {"scenario_id": "S001", "expected": "noncompliant"})
@@ -125,7 +218,14 @@ class TrialTests(unittest.TestCase):
                 self.write_pair(directory)
 
     def test_mismatched_observations_and_truth_are_rejected(self):
-        """Prevent comparing different monitor inputs or joining another scenario's label."""
+        """Prevent comparing different monitor inputs or joining another scenario's label.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with tempfile.TemporaryDirectory() as directory:
             self.write_pair(directory, "c" * 64)
             with self.assertRaisesRegex(ValueError, "same scenario observations"):
@@ -136,14 +236,28 @@ class TrialTests(unittest.TestCase):
                 join_for_evaluation(directory, "development", "held_out", "T001", {"scenario_id": "S002", "expected": "noncompliant"})
 
     def test_formal_recording_and_path_escape_are_blocked(self):
-        """Disable formal prediction writing until frozen-catalog controller integration."""
+        """Disable formal prediction writing until frozen-catalog controller integration.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with tempfile.TemporaryDirectory() as directory:
             for phase, trial in [("pilot", "T001"), ("confirmatory", "T001"), ("development", "../escape")]:
                 with self.assertRaises(ValueError):
                     write_prediction(directory, phase, "training", trial, "F01", "ai", "unknown", self.provenance(), "a" * 64)
 
     def test_tampered_prediction_cannot_be_joined(self):
-        """Detect an outcome edited after the immutable prediction was recorded."""
+        """Detect an outcome edited after the immutable prediction was recorded.
+
+        Inputs:
+            Synthetic fixtures prepared by setUp; no external services.
+
+        Outputs:
+            None: Assertions pass on expected behavior or raise when a regression occurs.
+        """
         with tempfile.TemporaryDirectory() as directory:
             self.write_pair(directory)
             path = Path(directory) / "development/held_out/T001/ai.json"

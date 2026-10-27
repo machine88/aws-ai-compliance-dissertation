@@ -6,18 +6,35 @@ import subprocess
 TARGET = "653464153304"
 
 def aws(profile, region, *args):
-    """Run an AWS CLI request with the selected profile and parse its JSON output."""
+    """Run an AWS CLI request with the selected profile and parse its JSON output.
+
+    Inputs:
+        profile: Explicit local AWS credential profile name.
+        region: Explicit AWS region.
+        args: Additional AWS CLI operation arguments.
+
+    Outputs:
+        dict: Parsed JSON from the selected read-only AWS CLI request; command failures propagate.
+    """
     result = subprocess.run(["aws", "--profile", profile, "--region", region,
                              "--no-cli-pager", *args, "--output", "json"],
                             check=True, capture_output=True, text=True)
     return json.loads(result.stdout)
 
 def main():
-    """Verify the target account, then report existing monitoring services read-only."""
+    """Verify the target account, then report existing monitoring services read-only.
+
+    Inputs:
+        CLI --profile/--region and an already authenticated non-root AWS session.
+
+    Outputs:
+        None: Prints read-only identity/inventory results or exits on an unsafe account/session.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", required=True)
     parser.add_argument("--region", required=True)
     args = parser.parse_args()
+    # Verify the selected identity before reading other account resources.
     identity = aws(args.profile, args.region, "sts", "get-caller-identity")
     # Refuse inventory calls from root or against another account.
     if identity.get("Account") != TARGET or identity.get("Arn", "").endswith(":root"):

@@ -8,12 +8,20 @@ from research.catalog import assign_learning_roles, readiness_errors, validate_c
 
 
 def main():
-    """Report balance, missing methodological gates and blocked family splits."""
+    """Report balance, missing methodological gates and blocked family splits.
+
+    Inputs:
+        Repository development catalog and separate ground-truth JSON files.
+
+    Outputs:
+        None: Prints JSON balance/readiness diagnostics; performs no cloud operations.
+    """
     root = Path(__file__).resolve().parents[1]
     catalog = json.loads((root / "protocol/scenarios/development-s3-v0.1.json").read_text())
     truth = json.loads((root / "protocol/ground-truth/development-s3-v0.1.json").read_text())
     summary = validate_catalog(catalog, truth)
     summary["formal_readiness_errors"] = readiness_errors(catalog)
+    # Report unsafe or incomplete group splits instead of manufacturing held-out assignments.
     try:
         summary["partitions"] = assign_learning_roles(catalog, seed=997)
     except ValueError as error:

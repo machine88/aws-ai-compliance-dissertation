@@ -1,4 +1,6 @@
 # Management events support scenario timing; data events and Insights are excluded from this phase.
+# Configure the regional trail and its reviewed collection state.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_cloudtrail" "research" {
   name                          = local.prefix
   s3_bucket_name                = aws_s3_bucket.telemetry.id

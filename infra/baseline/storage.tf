@@ -1,4 +1,6 @@
 # Dedicated evidence storage; existing application buckets are never adopted or modified.
+# Create a separately named protected S3 bucket.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket" "telemetry" {
   bucket        = local.log_bucket
   force_destroy = false
@@ -8,6 +10,8 @@ resource "aws_s3_bucket" "telemetry" {
   depends_on = [terraform_data.identity_guard]
 }
 
+# Block public bucket and object access.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_public_access_block" "telemetry" {
   bucket                  = aws_s3_bucket.telemetry.id
   block_public_acls       = true
@@ -16,6 +20,8 @@ resource "aws_s3_bucket_public_access_block" "telemetry" {
   restrict_public_buckets = true
 }
 
+# Keep bucket ownership enforced and ACL-based ownership disabled.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_ownership_controls" "telemetry" {
   bucket = aws_s3_bucket.telemetry.id
   rule {
@@ -23,6 +29,8 @@ resource "aws_s3_bucket_ownership_controls" "telemetry" {
   }
 }
 
+# Retain previous object versions for recovery.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_versioning" "telemetry" {
   bucket = aws_s3_bucket.telemetry.id
   versioning_configuration {
@@ -31,6 +39,8 @@ resource "aws_s3_bucket_versioning" "telemetry" {
 }
 
 # SSE-S3 avoids an extra KMS key fee; no evidence expiration is configured.
+# Configure encryption at rest and retain the SSE-C block.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_server_side_encryption_configuration" "telemetry" {
   bucket = aws_s3_bucket.telemetry.id
   rule {
@@ -44,6 +54,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "telemetry" {
 }
 
 # Service writes are restricted to this account, region and delivery prefixes.
+# Restrict bucket access and enforce the reviewed delivery/TLS conditions.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_s3_bucket_policy" "telemetry" {
   bucket = aws_s3_bucket.telemetry.id
   policy = jsonencode({

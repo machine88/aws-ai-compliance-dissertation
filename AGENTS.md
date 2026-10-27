@@ -9,7 +9,8 @@
 
 ## Code documentation
 
-- Give every function and method a brief description of what it does, including test helpers and test methods. Use Python docstrings and the equivalent concise comment style in other languages.
+- Document every function and method, including test helpers, with its purpose, an `Inputs:` section describing every named argument, and an `Outputs:` section describing the return value and side effects. Explicitly state when there are no arguments or no return value.
+- Add brief intent comments to logical code blocks and explain configuration inputs/outputs. Keep the explanations useful for a reader learning the system. JSON files must remain valid JSON; document them in a companion reference instead of adding invalid comments.
 - Add short file or module descriptions and comments for configuration blocks or non-obvious code where they help explain purpose, safeguards or research assumptions.
 - Keep comments plain and concise. Explain intent without narrating obvious operations; update descriptions whenever behavior changes.
 - Apply this convention to both new code and existing code touched during implementation.

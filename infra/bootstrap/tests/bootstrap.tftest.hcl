@@ -1,4 +1,6 @@
 # State protection checks run with mocked AWS resources only.
+# Supply synthetic provider responses for offline infrastructure tests.
+# Inputs: declared fixture defaults. Outputs: mock values; no AWS session or deployment is used.
 mock_provider "aws" {
   override_during = plan
   mock_data "aws_caller_identity" {
@@ -8,6 +10,8 @@ mock_provider "aws" {
     defaults = { id = "dissertation-653464153304-us-east-2-state", arn = "arn:aws:s3:::dissertation-653464153304-us-east-2-state" }
   }
 }
+# Check protect state storage using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "protect_state_storage" {
   command = plan
   assert {
@@ -16,6 +20,8 @@ run "protect_state_storage" {
   }
 }
 
+# Check retain customer key block using the mocked configuration.
+# Inputs: fixture values and proposed plan/apply behavior. Outputs: assertions that pass or fail the test run.
 run "retain_customer_key_block" {
   command = plan
   assert {

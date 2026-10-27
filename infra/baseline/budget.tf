@@ -1,4 +1,6 @@
 # Account-wide alerts also catch spend that cannot be allocated reliably by resource tag.
+# Configure account-wide spending alerts without an automatic spending cutoff.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_budgets_budget" "research" {
   provider     = aws.billing
   name         = "${local.prefix}-account-alerts"

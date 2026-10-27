@@ -1,4 +1,6 @@
 # AWS owns the Config service-linked role's trust and read permissions.
+# Create the AWS-managed service role required by Config.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_iam_service_linked_role" "config" {
   aws_service_name = "config.amazonaws.com"
   description      = "Dissertation AWS Config recording role"
@@ -7,6 +9,8 @@ resource "aws_iam_service_linked_role" "config" {
 
 # Type inclusion prevents automatic recording of every newly supported resource type.
 # Recording still sees ALL S3 buckets in this region, including unrelated buckets.
+# Select the resource types and role for Config recording.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_config_configuration_recorder" "research" {
   name     = local.prefix
   role_arn = aws_iam_service_linked_role.config.arn
@@ -22,6 +26,8 @@ resource "aws_config_configuration_recorder" "research" {
   }
 }
 
+# Route Config deliveries to the protected telemetry bucket.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_config_delivery_channel" "research" {
   name           = local.prefix
   s3_bucket_name = aws_s3_bucket.telemetry.id
@@ -32,6 +38,8 @@ resource "aws_config_delivery_channel" "research" {
   depends_on = [aws_config_configuration_recorder.research, aws_s3_bucket_policy.telemetry, aws_s3_bucket_versioning.telemetry, aws_s3_bucket_server_side_encryption_configuration.telemetry]
 }
 
+# Set the recorder to the explicitly requested collection state.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_config_configuration_recorder_status" "research" {
   name       = aws_config_configuration_recorder.research.name
   is_enabled = var.enable_collection
@@ -39,6 +47,8 @@ resource "aws_config_configuration_recorder_status" "research" {
 }
 
 # Direct Config rule evaluations are tagged to research buckets; CSPM uses its own service-linked rules.
+# Define one research-tag-scoped AWS-managed compliance rule.
+# Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_config_config_rule" "s3" {
   for_each = {
     tls_required         = "S3_BUCKET_SSL_REQUESTS_ONLY"
