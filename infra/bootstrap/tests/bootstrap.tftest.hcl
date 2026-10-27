@@ -15,3 +15,11 @@ run "protect_state_storage" {
     error_message = "State storage must stay private, versioned, TLS-only and protected from forced deletion."
   }
 }
+
+run "retain_customer_key_block" {
+  command = plan
+  assert {
+    condition     = contains(one(aws_s3_bucket_server_side_encryption_configuration.state.rule).blocked_encryption_types, "SSE-C")
+    error_message = "State storage must retain the block on customer-provided encryption keys."
+  }
+}

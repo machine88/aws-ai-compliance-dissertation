@@ -34,6 +34,9 @@ resource "aws_s3_bucket_versioning" "telemetry" {
 resource "aws_s3_bucket_server_side_encryption_configuration" "telemetry" {
   bucket = aws_s3_bucket.telemetry.id
   rule {
+    # Preserve the block on customer-provided encryption keys for state and logs.
+    blocked_encryption_types = ["SSE-C"]
+    bucket_key_enabled       = false
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
