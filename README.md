@@ -3,7 +3,7 @@
 Phase 1 local foundation. No AWS resources have been deployed and no empirical research results exist.
 
 Read [implementation plan](docs/implementation-plan.md) and [proposal intake](docs/proposal-traceability.md).
-The final proposal and authenticated target-account identity remain prerequisites.
+The final proposal has been read and hashed, and IAM identity verified in account 653464153304. See [proposal traceability](docs/proposal-traceability.md) and [protocol constraints](protocol/proposal-constraints.json). Account-service inventory, implementation specifications and deployment review remain pending.
 
 Offline checks: `python3 -m unittest discover -s tests -v`
 Read-only inventory after secure local login: `python3 scripts/preflight.py --profile RESEARCH_PROFILE --region REVIEWED_REGION`

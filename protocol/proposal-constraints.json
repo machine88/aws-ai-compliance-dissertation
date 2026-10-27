@@ -1,0 +1,56 @@
+{
+  "status": "proposal_verified_implementation_not_frozen",
+  "proposal_sha256": "99ad4b0aa5e1af82346f5e8b0bb1e8388b48726dc8815b8f68bddf3df896f5db",
+  "account": "653464153304",
+  "region": "us-east-2",
+  "observation_window_seconds": 1800,
+  "primary_outcomes": [
+    "accuracy",
+    "false_positive_rate",
+    "false_negative_rate",
+    "coverage",
+    "detection_latency"
+  ],
+  "binary_model": "binomial_logit_GLMM_with_scenario_random_intercept",
+  "latency_estimand": "restricted_mean_time_to_detection",
+  "hypothesis_direction": "two_sided",
+  "power": {
+    "target": 0.8,
+    "familywise_alpha": 0.05,
+    "adjustment": "holm",
+    "minimum_simulations_per_design": 1000,
+    "planning_binary_odds_ratio": 1.5,
+    "planning_rmst_difference_seconds": 120,
+    "planning_censoring": 0.15,
+    "censoring_sensitivity": [
+      0.05,
+      0.3
+    ],
+    "rmst_difference_sensitivity_seconds": [
+      60,
+      180
+    ],
+    "selected_confirmatory_sample_size": null
+  },
+  "catalog": {
+    "freeze_before_pilot": true,
+    "independent_review_before_confirmatory": true,
+    "strata": [
+      "rule_matched",
+      "combinatorial_drift"
+    ],
+    "balance_tolerance": null
+  },
+  "unresolved": [
+    "scenario_catalog",
+    "baseline_result_fusion",
+    "unknown_compliant_outcome_policy",
+    "feature_schema",
+    "model_hyperparameters",
+    "anomaly_threshold",
+    "adaptation_schedule_and_bounds",
+    "power_simulation_and_sample_size",
+    "analysis_environment_lock"
+  ],
+  "deployment_approved": false
+}
