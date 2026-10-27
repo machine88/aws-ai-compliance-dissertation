@@ -1,0 +1,6 @@
+# Supply reviewed existing bucket and region; never put credentials here.
+bucket = "REPLACE_WITH_REVIEWED_STATE_BUCKET"
+key = "dissertation/653464153304/REGION/baseline/terraform.tfstate"
+region = "REPLACE_WITH_APPROVED_REGION"
+encrypt = true
+use_lockfile = true
