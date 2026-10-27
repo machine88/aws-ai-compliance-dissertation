@@ -1,6 +1,6 @@
 # Paused monitoring baseline: deployment approval pending
 
-This is a real saved plan using the remote baseline state key and the existing bounded deployment role. Nothing in this plan has been applied. Bootstrap and access state migrations are already complete.
+Historical approved plan: partially applied after explicit user approval. Fourteen objects were created; the two Config rules failed because AWS rejected combined resource/tag scope. See `baseline-recovery-review.md` for verified status and the new two-create recovery plan. Bootstrap and access state migrations are complete.
 
 Plan SHA-256: `04377743c5941a4ff771b005b8ddf22969b576c7abdc3a12ca76d8852f938384`.
 
