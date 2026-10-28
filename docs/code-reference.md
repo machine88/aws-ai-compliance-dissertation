@@ -49,3 +49,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Snapshot observation adapter
 
 `research/observations.py` accepts decoded development envelopes for one reviewed bucket and an explicit observation slot. It outputs partial technical booleans, separately scoped Config/CSPM statuses, source hashes and readiness limits. It does not decrypt archives, authenticate envelopes, infer absent ML counts, fuse monitor decisions or join expected answers. See `observation-adapter.md` for supported policy patterns, missing-data semantics and remaining integration work. Every function describes its inputs and outputs.
+
+## Event feature extraction
+
+`research/event_features.py` accepts decoded event envelopes, complete boolean state frames and an exact development coverage declaration. It outputs seven proposed model-compatible numeric fields only when scope, availability, snapshots and completeness pass; otherwise it returns no feature vector and explicit blockers. Its source hashes and extraction version must enter the future controller audit. It does not collect events, prove completeness, train a model or expose answers. See `event-feature-extraction.md` for definitions, strict synthetic endpoint limitations and remaining live integration work.
