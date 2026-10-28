@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 import boto3
 from botocore.stub import Stubber
@@ -116,6 +116,30 @@ class ReaderTests(unittest.TestCase):
         with patch("scripts.collect_snapshot.EncryptedArchive"), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(main(["--output", "/unused", "--recipient-cert", "/unused-public.pem"], Mock(return_value=session)), 1)
         client.get_bucket_location.assert_not_called()
+
+    def test_snapshot_page_cap_stops_before_next_fetch(self):
+        """Bound snapshot pagination even when the first page is empty and has a next token.
+
+        Inputs:
+            Mocked reader/bucket guards and a two-page finding iterator with max-pages=1.
+        Outputs:
+            None: Asserts incomplete status and that the second page remains unconsumed.
+        """
+        session = Mock()
+        client = session.client.return_value
+        client.get_caller_identity.return_value = {"Account": ACCOUNT, "Arn": READER_PREFIX + "test"}
+        client.get_bucket_location.return_value = {"LocationConstraint": "us-east-2"}
+        client.get_bucket_tagging.return_value = {"TagSet": [{"Key": "Project", "Value": "aws-ai-compliance-dissertation"}]}
+        remaining = iter([{"Findings": [], "NextToken": "more"}, {"Findings": []}])
+        pages = MagicMock(resume_token=None)
+        pages.__iter__.return_value = remaining
+        client.get_paginator.return_value.paginate.return_value = pages
+        plan = read_plan(BUCKETS[0])[:2] + [r for r in read_plan(BUCKETS[0]) if r["operation"] == "get_findings"]
+        archive = Mock(receipts=[])
+        with patch("scripts.collect_snapshot.EncryptedArchive", return_value=archive), patch("scripts.collect_snapshot.read_plan", return_value=plan), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["--output", "/unused", "--recipient-cert", "/unused-public.pem", "--max-pages", "1"], Mock(return_value=session)), 1)
+        self.assertEqual(next(remaining), {"Findings": []})
+        self.assertTrue(any(call.args[0].get("reason") == "page_cap" for call in archive.write.call_args_list))
 
     def test_encrypted_archive_roundtrip(self):
         """Prove raw evidence is encrypted and decrypts to its original JSON.

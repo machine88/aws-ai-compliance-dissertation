@@ -113,6 +113,25 @@ class HistoryTests(unittest.TestCase):
         self.assertFalse(records[-1]["delivery_verified"])
         self.assertFalse(records[-1]["primary_trial_ready"])
 
+    def test_page_cap_stops_even_empty_continuation_pages(self):
+        """Stop before a second SDK fetch when an empty first page has a continuation token.
+
+        Inputs:
+            Five first-page responses, one declaring more results, and max-pages=1.
+        Outputs:
+            None: Asserts incomplete status and no unexpected second SDK request.
+        """
+        with Stubber(self.sts) as sts, Stubber(self.s3) as s3, Stubber(self.trail) as trail:
+            self.guarded_stubs(sts, s3)
+            for index, request in enumerate(self.plan):
+                page = {"Events": [], "NextToken": "more"} if index == 0 else {"Events": []}
+                trail.add_response("lookup_events", page, {**request["params"], "MaxResults": 50})
+            self.assertEqual(self.execute(["--max-pages", "1"]), 1)
+            trail.assert_no_pending_responses()
+        records = [call.args[0] for call in self.archive.write.call_args_list]
+        self.assertTrue(any(r.get("reason") == "page_cap" for r in records))
+        self.assertFalse(records[-1]["pages_complete"])
+
     def test_item_cap_preserves_truncation(self):
         """Mark a bounded partial lookup rather than claiming all source events were returned.
 
