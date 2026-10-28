@@ -45,3 +45,9 @@
   `{{resolve:secretsmanager:secret-id:SecretString:json-key}}` with
   `asm-exec` so the secret resolves at runtime without entering context.
 <!-- END AWS Agent Toolkit rules -->
+
+## Continuation preference
+
+- After a code PR passes required checks, merge it and continue the next useful implementation step without asking for routine merge confirmation.
+- Report completed milestones and keep progressing; do not stop merely because a PR merged.
+- Preserve explicit approval of reviewed AWS deployment plans and live research/development capture. Routine continuation does not waive those gates.

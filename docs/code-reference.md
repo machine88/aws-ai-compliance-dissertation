@@ -61,3 +61,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Proposed event-history permission
 
 `protocol/history-reader-policy-generation.json` records reproducible source/expansion/policy hashes for the unapplied history-reader proposal. The existing identity-policy file remains unedited analyzer output; the Terraform boundary limits its new LookupEvents action to Ohio. The source exporter and parity test now include both snapshot and history plans. `history-access-proposal.md` explains the unavoidable regional history-read breadth and separate deployment/capture approval gates. No raw live audit or saved-plan metadata is published by these references.
+
+## Private archive ingestion
+
+`research/archive_ingestion.py` accepts an owned private capture directory, trusted authenticated-decryption callback, independently pinned public-certificate hash and expected reviewed bucket. It returns verified in-memory record chains and scoped normalization without writing plaintext. POSIX permissions/link checks, size limits, strict JSON and ciphertext receipts prevent silent corruption or source substitution; explicit false flags prevent claims of sender authentication, provider delivery or formal-trial readiness. Shared optional S3-absence codes now live in `research/aws_reader.py`. See `archive-ingestion.md` for the trusted boundary, source/projection checks and remaining production key integration.

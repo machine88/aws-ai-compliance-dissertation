@@ -59,7 +59,7 @@ def main(arguments=None, session_factory=boto3.Session, now_factory=None):
         check_scope("get_bucket_location", location)
         tags = clients["s3"].get_bucket_tagging(**owner)
         check_scope("get_bucket_tagging", tags)
-        archive.write({"kind": "scope", "phase": "development", "location": location, "tags": tags})
+        archive.write({"kind": "scope", "phase": "development", "bucket": args.bucket, "location": location, "tags": tags})
         cloudtrail = clients["cloudtrail"]
         pacer = LookupPacer()
         cloudtrail.meta.events.register("before-send.cloudtrail.LookupEvents", pacer.before_send)

@@ -54,3 +54,9 @@
 ## Cost preference
 
 - Use a $100 monthly account-wide alert budget, with early warnings and no automatic spending cutoff. Prioritize completing the dissertation while avoiding unnecessary AWS spend.
+
+## Continuation preference
+
+- After a code PR passes required checks, merge it and continue the next useful implementation step without asking for routine merge confirmation.
+- Report completed milestones and keep progressing; do not stop merely because a PR merged.
+- Preserve explicit approval of reviewed AWS deployment plans and live research/development capture. Routine continuation does not waive those gates.
