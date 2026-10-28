@@ -69,3 +69,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Local recipient preparation and request bounds
 
 `scripts/macos_prepare_recipient.swift` accepts one new local output directory and prepares an encrypted recipient with a dedicated Keychain unlock secret; comments describe its helper's public arguments, sensitive in-memory stdin and output. It prints no secret values and has no AWS calls. Both collectors accept a separately bounded max-pages option alongside max-items, with explicit incomplete records at either limit. See `local-recipient-setup.md`; native setup, permission deployment and actual capture each retain their appropriate authorization boundaries.
+
+## Local Keychain decryption boundary
+
+`research/keychain_decryption.py` binds an independently fingerprinted private executable and recipient to a callable archive-decryption boundary. It returns authenticated bytes through captured pipes, keeps temporary files encrypted and reports generic failures without child output. `scripts/macos_decrypt_record.swift` retrieves only the dedicated local recipient secret and withholds plaintext until CMS authentication succeeds. It is a subprocess protocol, not a terminal display command. See `keychain-ingestion.md` for native authorization, trusted-host limits and offline test coverage.
