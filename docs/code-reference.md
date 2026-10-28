@@ -57,3 +57,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Development event-history inspection
 
 `research/event_history.py` creates fixed, closed-interval lookup plans, paces HTTP attempts and projects scoped event envelopes while retaining issue counts. `scripts/collect_event_history.py` accepts plan-only or explicitly authorized inspection arguments and writes encrypted SDK-visible pages/projections. Its completion record distinguishes pagination, decoding and unverified delivery; it never marks primary trial readiness. `event-history-collector.md` explains the account/region breadth, current permission block, limits and why historical receipts cannot establish detection latency. This code does not change the deployed reader policy.
+
+## Proposed event-history permission
+
+`protocol/history-reader-policy-generation.json` records reproducible source/expansion/policy hashes for the unapplied history-reader proposal. The existing identity-policy file remains unedited analyzer output; the Terraform boundary limits its new LookupEvents action to Ohio. The source exporter and parity test now include both snapshot and history plans. `history-access-proposal.md` explains the unavoidable regional history-read breadth and separate deployment/capture approval gates. No raw live audit or saved-plan metadata is published by these references.

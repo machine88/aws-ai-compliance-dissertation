@@ -64,6 +64,8 @@ locals {
       { Sid = "Rules", Effect = "Allow", Action = ["config:GetComplianceDetailsByConfigRule"], Resource = var.config_rule_arns, Condition = local.region },
       { Sid = "DeliveryContext", Effect = "Allow", Action = ["config:DescribeDeliveryChannels"], Resource = "*", Condition = local.region },
       { Sid = "CSPM", Effect = "Allow", Action = ["securityhub:DescribeHub", "securityhub:GetEnabledStandards", "securityhub:GetFindings"], Resource = ["arn:aws:securityhub:us-east-2:653464153304:hub/default"], Condition = local.region },
+      # Input: regional history read; no resource-level scope exists. Output: Ohio-only inspection permission.
+      { Sid = "HistoryInspection", Effect = "Allow", Action = ["cloudtrail:LookupEvents"], Resource = "*", Condition = local.region },
       { Sid = "TrailStatus", Effect = "Allow", Action = ["cloudtrail:GetTrailStatus"], Resource = ["arn:aws:cloudtrail:us-east-2:653464153304:trail/dissertation-research"], Condition = local.region }
     ]
   }

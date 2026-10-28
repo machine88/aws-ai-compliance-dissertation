@@ -2,16 +2,18 @@
 import argparse
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from research.aws_reader import BUCKETS, read_plan
+from research.event_history import history_plan
 
 
 def expanded_source():
     """Expose runtime-dispatched operations to deterministic static policy analysis.
 
     Inputs:
-        No arguments; reads the maintained fixed plans for both approved buckets.
+        No arguments; reads both maintained snapshot/history plans using a synthetic analysis interval.
     Outputs:
         str: Analysis-only Python source with explicit SDK calls; never executes it.
     """
@@ -21,7 +23,8 @@ def expanded_source():
     # Expand pagination targets as direct API calls; continuation does not change IAM actions.
     seen = set()
     for bucket in BUCKETS:
-        for request in read_plan(bucket):
+        history = history_plan(bucket, "2026-01-01T00:00:00Z", "2026-01-01T00:30:00Z", datetime(2026, 1, 1, 1, tzinfo=timezone.utc))
+        for request in read_plan(bucket) + history:
             call = f'{request["service"]}.{request["operation"]}(**{request["params"]!r})'
             if call not in seen:
                 lines.append(call)
