@@ -57,3 +57,7 @@ jobs:
           terraform -chdir=infra/access init -backend=false -input=false
           terraform -chdir=infra/access validate
           terraform -chdir=infra/access test
+
+          terraform -chdir=infra/reader init -backend=false -input=false
+          terraform -chdir=infra/reader validate
+          terraform -chdir=infra/reader test

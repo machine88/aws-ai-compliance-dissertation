@@ -41,3 +41,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Read-only development collector
 
 `requirements-aws.txt` pins the SDK and temporary-login runtime. `research/aws_reader.py` defines the fixed read scope and encrypted archive. `scripts/collect_snapshot.py` accepts a reader profile, one approved bucket, a new output directory, a public certificate and an optional pagination bound. It outputs encrypted development observations and a count/status summary. `--plan` outputs requests only, without credentials or AWS calls. See `docs/read-only-collectors.md` for scope and limitations.
+
+## Reader access review
+
+`infra/reader/generated-reader-policy.json` is the unedited identity-policy portion of IAM Policy Autopilot output. Inputs are runtime SDK source plus the tested analysis expansion; the Terraform root applies a separate boundary before any grant. `protocol/reader-policy-generation.json` records tool version, source/expanded-input hashes, policy hash, warnings and uncompleted live checks. It contains no inventory, credentials or deployment approval. `scripts/export_reader_policy_input.py` writes analysis-only source without executing AWS calls. Required Config ARN variables have no guessed defaults. See `evidence-reader-review.md` for the state key, authority limits and approval gate.
