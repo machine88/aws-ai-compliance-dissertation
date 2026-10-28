@@ -1,0 +1,17 @@
+# Proposed CloudTrail-only development stage
+
+Independent monitoring switches are merged. This proposal changes only the deployment role's permissions boundary by adding StartLogging to its existing named-trail, Ohio-scoped statement. The generated identity policy already contains that action; it is not rewritten. All existing boundaries, trust, session duration, recorder permissions and reader permissions stay unchanged. This is source preparation, not an applied permission grant or activation approval.
+
+The identity policy's Autopilot provenance is retained. The boundary is reviewed against AWS's service authorization reference: StartLogging supports trail resource scope, so this proposal retains the existing exact trail ARN and requested-region condition. It adds no wildcard start permission, Config recording start, standard subscription, S3 object-content access or paid query operation. The already-scoped StopLogging permission remains available for a separately reviewed pause.
+
+A real activation needs two separately inspected saved plans: the single boundary update from the access root, then the single enable_logging field change from the baseline root using only enable_cloudtrail_logging=true. The source defaults remain false. Config and the CSPM standard remain off. Both state keys stay separate and neither plan should create or delete resources. Raw plans, exact fingerprints, live policy simulations and account inventory stay private.
+
+The trail's existing scope is not research-bucket-only: it requests management events with its existing global-service option. This proposed role permission allows starting only that named trail, not changing the selectors through a new grant. Existing independently granted management actions are not removed. Do not interpret an allowlisted start action as proof that the whole account or all other policies have been reviewed.
+
+Logging persists after a Terraform/STS session ends; neither a one-hour role limit nor the monthly alert budget automatically stops it. If activated, it will remain on until explicitly paused through a reviewed update. Such a stage must be approved with an understandable scope, cost assumptions, retained-log policy and pause procedure. No timed stop or guaranteed spending ceiling is implied.
+
+Current public unit prices and conservative assumed-volume examples belong in the private activation review. Account usage is not inferred from a quiet five-name history lookup. S3 storage/request costs remain even when event logging's first-copy charge is zero. No trial credits or account-specific discounts should be assumed. This stage creates no compute or Config/CSPM activity, but that does not make all AWS charges zero.
+
+The mocked access test verifies the exact named resource/region, boundary attachment, session limit and absence of Config start. A private activation review must validate/simulate the complete effective policy and inspect that only the expected field changes. Never widen permissions automatically following an unexpected provider/API failure.
+
+This stage, if later approved, is development audit telemetry rather than a frozen research experiment. It does not authorize new local captures, scenario mutations, learning/adaptation, formal predictions or inferential results. Prospective trigger/snapshot/delivery contracts and the complete scenario catalog remain separate scientific readiness work.

@@ -201,6 +201,7 @@
         "cloudtrail:GetTrailStatus",
         "cloudtrail:ListTags",
         "cloudtrail:PutEventSelectors",
+        "cloudtrail:StartLogging",
         "cloudtrail:StopLogging"
       ],
       "Resource": [

@@ -77,3 +77,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Independently staged monitoring
 
 `infra/baseline/variables.tf` adds three off-by-default service requests alongside the legacy all-on switch. Locals resolve each component; planning guards reject mixed positive interfaces and CSPM without Config. The existing collection_enabled output reflects any requested component. `staged-activation.md` explains combinations, unchanged recording/logging scope, complete pause inputs and separate permission/deployment gates. The paused live plan remains unchanged; no activation accompanies this source change.
+
+## CloudTrail-only permission proposal
+
+`infra/access/deployment-boundary.json` proposes one additional named-trail StartLogging permission in its existing regional statement; the generated identity policy remains unchanged. The access regression test checks named-trail/region scope and continued absence of Config start. `trail-only-permission-proposal.md` explains the two-root saved-plan gate, unchanged telemetry selectors, persistent logging and separate capture/research permissions. Raw live reviews and assumed-volume cost calculations remain private.
