@@ -13,13 +13,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from research.aws_reader import BUCKETS, REGION, EncryptedArchive, check_scope, read_plan, verify_identity
 
-# Missing optional S3 configurations are observations, never proof of compliance.
-ABSENCE_CODES = {
-    "get_bucket_policy": {"NoSuchBucketPolicy"},
-    "get_public_access_block": {"NoSuchPublicAccessBlockConfiguration"},
-    "get_bucket_encryption": {"ServerSideEncryptionConfigurationNotFoundError"},
-    "get_bucket_ownership_controls": {"OwnershipControlsNotFoundError"},
-}
+from research.aws_reader import OPTIONAL_ABSENCE_CODES as ABSENCE_CODES
 
 
 def main(arguments=None, session_factory=boto3.Session):

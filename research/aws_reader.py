@@ -14,6 +14,15 @@ RULES = ("dissertation-research-public-access-blocks", "dissertation-research-tl
 READER_PREFIX = f"arn:aws:sts::{ACCOUNT}:assumed-role/dissertation-evidence-reader/"
 
 
+# Missing optional S3 configurations are observations, never proof of compliance.
+OPTIONAL_ABSENCE_CODES = {
+    "get_bucket_policy": {"NoSuchBucketPolicy"},
+    "get_public_access_block": {"NoSuchPublicAccessBlockConfiguration"},
+    "get_bucket_encryption": {"ServerSideEncryptionConfigurationNotFoundError"},
+    "get_bucket_ownership_controls": {"OwnershipControlsNotFoundError"},
+}
+
+
 def verify_identity(identity):
     """Reject every principal except the dedicated research reader role.
 
