@@ -1,20 +1,23 @@
 # AWS AI Compliance Dissertation
 
-The final proposal defines this study's methodology. No research infrastructure has been deployed and no pilot or confirmatory results exist.
+The final proposal defines this study's methodology. The protected AWS foundation is deployed, and the approved CloudTrail-only development stage is logging. Config recording remains paused and Security Hub CSPM has no enabled standards. No pilot or confirmatory results exist.
 
 Start with the [implementation plan](docs/implementation-plan.md), [proposal requirements](docs/proposal-traceability.md), [read-only inventory procedure](docs/aws-inventory.md) and [Phase 2 deployment review](docs/phase2-deployment-review.md).
 
 ## Current software
 
-- Separate Terraform roots for protected state storage and a regional Config, Security Hub CSPM and CloudTrail baseline. Collection defaults to paused; this is not an operational deployment.
+- Separate Terraform roots for protected state, bounded deployment access, a regional monitoring baseline and read-only evidence access. Source activation defaults remain false; the private approved configuration requests CloudTrail only. Later live plans must preserve that explicit configuration rather than accidentally request a pause.
 - Two initial S3 instrument-control candidates and an explicit regional FSBP control snapshot. The independent, balanced scenario catalog is still pending.
-- Evidence envelopes separating development, pilot and confirmatory records. Related learning-role separation remains to be implemented before model development.
-- Exact, assumption-based cost calculations using a retained public pricing snapshot; no actual billing data or budget changes.
+- Encrypted development snapshot/history collectors, archive verification and a local Keychain-backed decryption helper. Software-check captures are development evidence, not research trials. Delivery completeness and prospective timing remain unvalidated.
+- Offline Isolation Forest, bounded adaptation and deterministic mapping, with score-before-adapt and held-out protections. No study model has been trained; the draft catalog cannot yet support the required independent learning splits.
+- Exact, assumption-based cost calculations and a deployed $100 monthly alert budget. Alerts do not cap spending; delivery of alert email has not been demonstrated.
 - Local and CI validation using mocked providers, with no AWS credentials or deployment permissions in CI.
+
+See the [current architecture and next instrument review](docs/prospective-instrument-review.md) for the remaining work and the distinction between logging enabled, delivery verified and research ready. Raw deployment/capture audits remain private.
 
 ## Offline checks
 
-Use Terraform 1.14.3 (or a compatible supported version) and the checked-in provider lockfiles.
+CI uses Terraform 1.15.0 and the checked-in provider lockfiles.
 
 ```sh
 python3 scripts/check_function_docs.py
