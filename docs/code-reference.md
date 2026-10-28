@@ -45,3 +45,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Reader access review
 
 `infra/reader/generated-reader-policy.json` is the unedited identity-policy portion of IAM Policy Autopilot output. Inputs are runtime SDK source plus the tested analysis expansion; the Terraform root applies a separate boundary before any grant. `protocol/reader-policy-generation.json` records tool version, source/expanded-input hashes, policy hash, warnings and uncompleted live checks. It contains no inventory, credentials or deployment approval. `scripts/export_reader_policy_input.py` writes analysis-only source without executing AWS calls. Required Config ARN variables have no guessed defaults. See `evidence-reader-review.md` for the state key, authority limits and approval gate.
+
+## Snapshot observation adapter
+
+`research/observations.py` accepts decoded development envelopes for one reviewed bucket and an explicit observation slot. It outputs partial technical booleans, separately scoped Config/CSPM statuses, source hashes and readiness limits. It does not decrypt archives, authenticate envelopes, infer absent ML counts, fuse monitor decisions or join expected answers. See `observation-adapter.md` for supported policy patterns, missing-data semantics and remaining integration work. Every function describes its inputs and outputs.
