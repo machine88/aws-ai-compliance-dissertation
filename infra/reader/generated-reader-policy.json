@@ -1,0 +1,74 @@
+{
+  "Id": "IamPolicyAutopilot",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:GetTrailStatus"
+      ],
+      "Resource": [
+        "arn:aws:cloudtrail:us-east-2:653464153304:trail/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "config:DescribeConfigurationRecorderStatus",
+        "config:DescribeConfigurationRecorders",
+        "config:GetComplianceDetailsByConfigRule"
+      ],
+      "Resource": [
+        "arn:aws:config:us-east-2:653464153304:config-rule/*",
+        "arn:aws:config:us-east-2:653464153304:configuration-recorder/*/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "config:DescribeDeliveryChannels"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetEncryptionConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::*",
+        "arn:aws:s3:us-east-2:653464153304:accesspoint/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "securityhub:DescribeHub",
+        "securityhub:GetEnabledStandards",
+        "securityhub:GetFindings"
+      ],
+      "Resource": [
+        "arn:aws:securityhub:us-east-2:653464153304:hub/default",
+        "arn:aws:securityhub:us-east-2:653464153304:hubv2/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}

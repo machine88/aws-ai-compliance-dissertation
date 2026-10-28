@@ -41,7 +41,8 @@ def read_plan(bucket):
     plan = [{"service": "s3", "operation": operation, "params": dict(owner), "paginated": False} for operation in operations]
     # Retain recorder health alongside evaluations so absent monitoring is visible.
     for operation in ("describe_configuration_recorders", "describe_configuration_recorder_status", "describe_delivery_channels"):
-        plan.append({"service": "config", "operation": operation, "params": {}, "paginated": False})
+        scope_key = "DeliveryChannelNames" if operation == "describe_delivery_channels" else "ConfigurationRecorderNames"
+        plan.append({"service": "config", "operation": operation, "params": {scope_key: ["dissertation-research"]}, "paginated": False})
     for rule in RULES:
         plan.append({"service": "config", "operation": "get_compliance_details_by_config_rule", "params": {"ConfigRuleName": rule}, "paginated": True})
     filters = {key: [{"Value": value, "Comparison": "EQUALS"}] for key, value in {
