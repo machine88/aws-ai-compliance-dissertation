@@ -1,10 +1,10 @@
 # Development snapshot collector
 
-Status: offline tested software. The dedicated `dissertation-evidence-reader` role and public recipient certificate are prerequisites, not provisioned by this change. No live capture, monitoring activation or study trial is performed here. PR #12's timing ledger is a separate change; this snapshot does not implement timed polling.
+Status: software tested offline; the dedicated reader role was deployed and verified under separate approval. Local recipient preparation is separate from permission deployment and capture approval. No live capture, monitoring activation or study trial is performed here. PR #12's timing ledger is a separate change; this snapshot does not implement timed polling.
 
 ```mermaid
 flowchart LR
-  A[Dedicated reader role: pending] --> B[Verify account and bucket scope]
+  A[Dedicated reader role: deployed] --> B[Verify account and bucket scope]
   B --> C[S3 metadata / Config evaluations / CSPM findings / trail status]
   C --> D[Encrypt each response in memory]
   D --> E[Private development archive]
@@ -15,7 +15,7 @@ The collector reads the two named research buckets only, one per run. It validat
 
 The fixed request plan covers S3 location, tags, public access block, versioning, policy/status, encryption and ownership; Config recorder/status/delivery-channel context and both named rule evaluations; Security Hub CSPM V1 hub/standards context and active AWS Security Hub S3.5/S3.8 findings filtered by account, region and selected bucket ARN; and the named CloudTrail trail's status. Config context is regional and its named-rule evaluation responses can include other project buckets. Keep these raw pages private. Findings can include historical observations; no freshness/compliance conclusion is produced here.
 
-No bucket objects, CloudTrail event bodies, state files, member accounts or unrelated buckets are enumerated or downloaded. No paid analytics query, service enablement, mutation, classification, training or Terraform operation occurs. Metadata reads can still contribute ordinary AWS request/management-event costs, so this PR does not authorize execution. Retries have three total attempts and short network timeouts. Each paginated operation has a maximum of 1,000 items; a remaining continuation token makes the capture incomplete. This is a bounded snapshot, not an exhaustive account audit.
+No bucket objects, CloudTrail event bodies, state files, member accounts or unrelated buckets are enumerated or downloaded. No paid analytics query, service enablement, mutation, classification, training or Terraform operation occurs. Metadata reads can still contribute ordinary AWS request/management-event costs, so this PR does not authorize execution. Retries have three total attempts and short network timeouts. Each paginated operation has a maximum of 1,000 items and 20 pages (both can be lowered); a remaining continuation token makes the capture incomplete. This is a bounded snapshot, not an exhaustive account audit.
 
 Use `python scripts/collect_snapshot.py --plan` to review requests without credentials or cloud calls. A future authorized run additionally needs `--output` pointing to a new private directory and `--recipient-cert` pointing to an unexpired RSA public X.509 certificate (at least 3072 bits). The default profile is `dissertation-evidence-reader`. Do not pass passwords, private keys or access keys. Runtime dependencies are pinned in `requirements-aws.txt`; OpenSSL 3+ is required. The collector ignores configured endpoint overrides and uses the SDK's normal credential provider chain.
 

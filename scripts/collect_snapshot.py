@@ -34,13 +34,14 @@ def main(arguments=None, session_factory=boto3.Session):
     parser.add_argument("--recipient-cert", type=Path)
     parser.add_argument("--openssl")
     parser.add_argument("--max-items", type=int, default=1000)
+    parser.add_argument("--max-pages", type=int, default=20)
     args = parser.parse_args(arguments)
     plan = read_plan(args.bucket)
     if args.plan:
         print(json.dumps({"phase": "development", "region": REGION, "requests": plan}, indent=2))
         return 0
-    if not args.output or not args.recipient_cert or not 1 <= args.max_items <= 1000:
-        parser.error("Live reads require a new output directory, public recipient certificate and max-items 1..1000")
+    if not args.output or not args.recipient_cert or not 1 <= args.max_items <= 1000 or not 1 <= args.max_pages <= 20:
+        parser.error("Live reads require a new output directory, public recipient certificate and max-items 1..1000/max-pages 1..20")
     archive = None
     try:
         # Validate local encryption before acquiring a session or issuing any cloud request.
@@ -61,10 +62,17 @@ def main(arguments=None, session_factory=boto3.Session):
                     pages = client.get_paginator(operation).paginate(**request["params"], PaginationConfig={"MaxItems": args.max_items})
                 else:
                     pages = [getattr(client, operation)(**request["params"])]
+                query_pages, capped = 0, False
                 for response in pages:
+                    query_pages += 1
                     archive.write({"kind": "response", "phase": "development", "request": request, "collector_recorded_at": datetime.now(timezone.utc), "response": response})
                     check_scope(operation, response)
-                if request["paginated"] and pages.resume_token:
+                    # Bound empty continuation pages as well as returned item counts.
+                    if request["paginated"] and query_pages >= args.max_pages and response.get("NextToken"):
+                        complete, capped = False, True
+                        archive.write({"kind": "truncated", "request": request, "reason": "page_cap", "next_token": response["NextToken"]})
+                        break
+                if request["paginated"] and not capped and pages.resume_token:
                     complete = False
                     archive.write({"kind": "truncated", "request": request, "resume_token": pages.resume_token})
             except ClientError as error:

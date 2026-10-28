@@ -36,6 +36,7 @@ def main(arguments=None, session_factory=boto3.Session, now_factory=None):
     parser.add_argument("--output", type=Path)
     parser.add_argument("--openssl")
     parser.add_argument("--max-items", type=int, default=1000)
+    parser.add_argument("--max-pages", type=int, default=20)
     args = parser.parse_args(arguments)
     archive = None
     try:
@@ -44,8 +45,8 @@ def main(arguments=None, session_factory=boto3.Session, now_factory=None):
         if args.plan:
             print(json.dumps({"phase": "development", "requests": plan, "delivery_verified": False, "primary_trial_ready": False}, indent=2))
             return 0
-        if not args.execute_reviewed_read or not args.output or not args.recipient_cert or not 1 <= args.max_items <= 1000:
-            parser.error("Execution requires reviewed-read opt-in, new output path, public certificate and max-items 1..1000")
+        if not args.execute_reviewed_read or not args.output or not args.recipient_cert or not 1 <= args.max_items <= 1000 or not 1 <= args.max_pages <= 20:
+            parser.error("Execution requires reviewed-read opt-in, new output path, public certificate and max-items 1..1000/max-pages 1..20")
         archive = EncryptedArchive(args.output, args.recipient_cert, args.openssl)
         session = session_factory(profile_name=args.profile, region_name=REGION)
         config = Config(connect_timeout=5, read_timeout=15, retries={"total_max_attempts": 3, "mode": "standard"}, ignore_configured_endpoint_urls=True)
@@ -67,7 +68,9 @@ def main(arguments=None, session_factory=boto3.Session, now_factory=None):
         for request in plan:
             try:
                 pages = cloudtrail.get_paginator("lookup_events").paginate(**request["params"], PaginationConfig={"PageSize": 50, "MaxItems": args.max_items})
+                query_pages, capped = 0, False
                 for page in pages:
+                    query_pages += 1
                     recorded = (now_factory() if now_factory else datetime.now(timezone.utc)).isoformat()
                     normalized = json.loads(json.dumps(page, default=json_default))
                     # Encrypt raw provider data before filtering; it may include other buckets' events.
@@ -77,7 +80,12 @@ def main(arguments=None, session_factory=boto3.Session, now_factory=None):
                     page_count += 1
                     selected_count += len(projected["envelopes"])
                     decoding_complete = decoding_complete and not projected["issue_counts"]
-                if pages.resume_token:
+                    # Stop before asking the SDK iterator for another HTTP page, even after empty pages.
+                    if query_pages >= args.max_pages and page.get("NextToken"):
+                        pages_complete, capped = False, True
+                        archive.write({"kind": "truncated", "request": request, "reason": "page_cap", "next_token": page["NextToken"]})
+                        break
+                if not capped and pages.resume_token:
                     pages_complete = False
                     archive.write({"kind": "truncated", "request": request, "resume_token": pages.resume_token})
             except ClientError as error:

@@ -56,7 +56,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 
 ## Development event-history inspection
 
-`research/event_history.py` creates fixed, closed-interval lookup plans, paces HTTP attempts and projects scoped event envelopes while retaining issue counts. `scripts/collect_event_history.py` accepts plan-only or explicitly authorized inspection arguments and writes encrypted SDK-visible pages/projections. Its completion record distinguishes pagination, decoding and unverified delivery; it never marks primary trial readiness. `event-history-collector.md` explains the account/region breadth, current permission block, limits and why historical receipts cannot establish detection latency. This code does not change the deployed reader policy.
+`research/event_history.py` creates fixed, closed-interval lookup plans, paces HTTP attempts and projects scoped event envelopes while retaining issue counts. `scripts/collect_event_history.py` accepts plan-only or explicitly authorized inspection arguments and writes encrypted SDK-visible pages/projections. Its completion record distinguishes pagination, decoding and unverified delivery; it never marks primary trial readiness. `event-history-collector.md` explains the account/region breadth, capture approval gate, limits and why historical receipts cannot establish detection latency. This code does not change the deployed reader policy.
 
 ## Proposed event-history permission
 
@@ -65,3 +65,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Private archive ingestion
 
 `research/archive_ingestion.py` accepts an owned private capture directory, trusted authenticated-decryption callback, independently pinned public-certificate hash and expected reviewed bucket. It returns verified in-memory record chains and scoped normalization without writing plaintext. POSIX permissions/link checks, size limits, strict JSON and ciphertext receipts prevent silent corruption or source substitution; explicit false flags prevent claims of sender authentication, provider delivery or formal-trial readiness. Shared optional S3-absence codes now live in `research/aws_reader.py`. See `archive-ingestion.md` for the trusted boundary, source/projection checks and remaining production key integration.
+
+## Local recipient preparation and request bounds
+
+`scripts/macos_prepare_recipient.swift` accepts one new local output directory and prepares an encrypted recipient with a dedicated Keychain unlock secret; comments describe its helper's public arguments, sensitive in-memory stdin and output. It prints no secret values and has no AWS calls. Both collectors accept a separately bounded max-pages option alongside max-items, with explicit incomplete records at either limit. See `local-recipient-setup.md`; native setup, permission deployment and actual capture each retain their appropriate authorization boundaries.
