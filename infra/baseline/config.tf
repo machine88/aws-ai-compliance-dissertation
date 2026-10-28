@@ -42,7 +42,7 @@ resource "aws_config_delivery_channel" "research" {
 # Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_config_configuration_recorder_status" "research" {
   name       = aws_config_configuration_recorder.research.name
-  is_enabled = var.enable_collection
+  is_enabled = local.config_recording_enabled
   depends_on = [aws_config_delivery_channel.research]
 }
 

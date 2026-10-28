@@ -24,7 +24,31 @@ variable "aws_profile" {
 variable "enable_collection" {
   type        = bool
   default     = false
-  description = "Starts Config and CloudTrail and subscribes to the scoped CSPM standard."
+  description = "Compatibility switch for all monitoring components; do not combine with independent switches. Requires an approved activation plan."
+}
+
+# Inputs: explicit reviewed service requests. Outputs: independent activation intent; defaults stay paused.
+variable "enable_config_recording" {
+  type        = bool
+  default     = false
+  nullable    = false
+  description = "Request Config recording only; requires a separately approved activation plan."
+}
+
+# Input: explicit reviewed logging request. Output: management-trail activation intent, not CSPM enrollment.
+variable "enable_cloudtrail_logging" {
+  type        = bool
+  default     = false
+  nullable    = false
+  description = "Request CloudTrail logging independently; does not authorize data events or collection."
+}
+
+# Input: explicit reviewed standard request. Output: CSPM subscription/control intent, requiring Config.
+variable "enable_cspm_standard" {
+  type        = bool
+  default     = false
+  nullable    = false
+  description = "Request the existing reviewed CSPM standard/control manifest; requires Config recording and explicit cost/scope approval."
 }
 
 # Declare and validate the budget_email input.

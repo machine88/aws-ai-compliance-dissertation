@@ -8,7 +8,7 @@ resource "aws_cloudtrail" "research" {
   is_multi_region_trail         = false
   include_global_service_events = true
   enable_log_file_validation    = true
-  enable_logging                = var.enable_collection
+  enable_logging                = local.cloudtrail_logging_enabled
   event_selector {
     read_write_type           = "All"
     include_management_events = true

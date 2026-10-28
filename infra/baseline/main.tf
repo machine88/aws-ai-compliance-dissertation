@@ -74,6 +74,10 @@ locals {
   trail_arn  = "arn:aws:cloudtrail:${var.region}:${local.account_id}:trail/${local.prefix}"
   fsbp_arn   = "arn:aws:securityhub:${var.region}::standards/aws-foundational-security-best-practices/v/1.0.0"
   fsbp       = jsondecode(file("${path.module}/fsbp-controls-us-east-2.json"))
+  # Preserve legacy all-on behavior while supporting explicit independent development stages.
+  config_recording_enabled   = var.enable_collection || var.enable_config_recording
+  cloudtrail_logging_enabled = var.enable_collection || var.enable_cloudtrail_logging
+  cspm_standard_enabled      = var.enable_collection || var.enable_cspm_standard
 }
 
 # Refuse root sessions before resource creation, even inside the expected account.
@@ -82,6 +86,14 @@ locals {
 resource "terraform_data" "identity_guard" {
   input = data.aws_caller_identity.current.account_id
   lifecycle {
+    precondition {
+      condition     = !(var.enable_collection && (var.enable_config_recording || var.enable_cloudtrail_logging || var.enable_cspm_standard))
+      error_message = "Choose legacy all-on or independent service switches, not both."
+    }
+    precondition {
+      condition     = !local.cspm_standard_enabled || local.config_recording_enabled
+      error_message = "The reviewed S3 CSPM instrument stage requires Config recording."
+    }
     precondition {
       condition     = data.aws_caller_identity.current.account_id == local.account_id && startswith(data.aws_caller_identity.current.arn, "arn:aws:sts::653464153304:assumed-role/dissertation-paused-baseline-deploy/")
       error_message = "Use the bounded dissertation deployment role in account 653464153304."

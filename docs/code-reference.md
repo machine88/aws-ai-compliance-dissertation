@@ -73,3 +73,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Local Keychain decryption boundary
 
 `research/keychain_decryption.py` binds an independently fingerprinted private executable and recipient to a callable archive-decryption boundary. It returns authenticated bytes through captured pipes, keeps temporary files encrypted and reports generic failures without child output. `scripts/macos_decrypt_record.swift` retrieves only the dedicated local recipient secret and withholds plaintext until CMS authentication succeeds. It is a subprocess protocol, not a terminal display command. See `keychain-ingestion.md` for native authorization, trusted-host limits and offline test coverage.
+
+## Independently staged monitoring
+
+`infra/baseline/variables.tf` adds three off-by-default service requests alongside the legacy all-on switch. Locals resolve each component; planning guards reject mixed positive interfaces and CSPM without Config. The existing collection_enabled output reflects any requested component. `staged-activation.md` explains combinations, unchanged recording/logging scope, complete pause inputs and separate permission/deployment gates. The paused live plan remains unchanged; no activation accompanies this source change.
