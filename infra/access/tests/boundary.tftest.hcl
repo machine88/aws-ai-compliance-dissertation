@@ -29,3 +29,16 @@ run "restricted_role" {
     error_message = "Only the reviewed IAM user may assume this role."
   }
 }
+
+# Input: proposed trail-only start permission. Output: exact existing trail/region scope and no Config start.
+run "trail_start_remains_named_and_regional" {
+  command = plan
+  assert {
+    condition     = contains(one([for statement in jsondecode(aws_iam_policy.boundary.policy).Statement : statement if statement.Sid == "B12"]).Action, "cloudtrail:StartLogging") && one([for statement in jsondecode(aws_iam_policy.boundary.policy).Statement : statement if statement.Sid == "B12"]).Resource == ["arn:aws:cloudtrail:us-east-2:653464153304:trail/dissertation-research"] && one([for statement in jsondecode(aws_iam_policy.boundary.policy).Statement : statement if statement.Sid == "B12"]).Condition.StringEquals["aws:RequestedRegion"] == "us-east-2"
+    error_message = "StartLogging must remain limited to the existing research trail in Ohio."
+  }
+  assert {
+    condition     = !strcontains(aws_iam_policy.boundary.policy, "config:StartConfigurationRecorder") && aws_iam_role.deployment.max_session_duration == 3600 && aws_iam_role.deployment.permissions_boundary == aws_iam_policy.boundary.arn
+    error_message = "The trail stage must not add Config start, remove the boundary or extend sessions."
+  }
+}
