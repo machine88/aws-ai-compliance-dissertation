@@ -53,3 +53,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Event feature extraction
 
 `research/event_features.py` accepts decoded event envelopes, complete boolean state frames and an exact development coverage declaration. It outputs seven proposed model-compatible numeric fields only when scope, availability, snapshots and completeness pass; otherwise it returns no feature vector and explicit blockers. Its source hashes and extraction version must enter the future controller audit. It does not collect events, prove completeness, train a model or expose answers. See `event-feature-extraction.md` for definitions, strict synthetic endpoint limitations and remaining live integration work.
+
+## Development event-history inspection
+
+`research/event_history.py` creates fixed, closed-interval lookup plans, paces HTTP attempts and projects scoped event envelopes while retaining issue counts. `scripts/collect_event_history.py` accepts plan-only or explicitly authorized inspection arguments and writes encrypted SDK-visible pages/projections. Its completion record distinguishes pagination, decoding and unverified delivery; it never marks primary trial readiness. `event-history-collector.md` explains the account/region breadth, current permission block, limits and why historical receipts cannot establish detection latency. This code does not change the deployed reader policy.
