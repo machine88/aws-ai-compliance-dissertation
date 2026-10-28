@@ -1,6 +1,8 @@
 """Verify the analysis-only policy input exactly covers the collector's dynamic read plan."""
 import ast
 import unittest
+from datetime import datetime, timezone
+from research.event_history import history_plan
 from research.aws_reader import BUCKETS, read_plan
 from scripts.export_reader_policy_input import expanded_source
 
@@ -24,7 +26,8 @@ class PolicyInputTests(unittest.TestCase):
                 calls.append((node.func.value.id, node.func.attr, repr(params)))
         expected = {("sts", "get_caller_identity", repr({}))}
         for bucket in BUCKETS:
-            expected.update((r["service"], r["operation"], repr(r["params"])) for r in read_plan(bucket))
+            history = history_plan(bucket, "2026-01-01T00:00:00Z", "2026-01-01T00:30:00Z", datetime(2026, 1, 1, 1, tzinfo=timezone.utc))
+            expected.update((r["service"], r["operation"], repr(r["params"])) for r in read_plan(bucket) + history)
         self.assertEqual(set(calls), expected)
         self.assertEqual(len(calls), len(expected))
 

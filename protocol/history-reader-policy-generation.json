@@ -1,0 +1,43 @@
+{
+  "status": "generated_proposal_not_applied",
+  "tool": "iam-policy-autopilot",
+  "version": "0.3.0",
+  "source_sha256": {
+    "scripts/collect_snapshot.py": "41d2ac6ae9eeca28981a096a4f69aa9475630e335429742650458bdf964b2483",
+    "scripts/collect_event_history.py": "734c06a846a504e997c737cac740b91736f3755ed7b5d0d0b118a486f5e34f09",
+    "research/aws_reader.py": "c86034d1ba24c57790bc8128995326fd81fe5a50397a250e8f9aa6cd52b73f63",
+    "research/event_history.py": "3a4860e9fee18868e3263a816eef709176a41fe29dbc7042746d21bf3a0b81e5",
+    "research/event_features.py": "d719cb9b7bf07f7c662616052daf7724f115195b85478c94cd756be2ddcd7409",
+    "scripts/export_reader_policy_input.py": "b8f35aa91f210c0ef30ff6435e7c825e2d644f86a33e2a35d491aeb6b1fc4a83"
+  },
+  "expanded_source_sha256": "48ed7b90c51ba439f203f6694a0f0af24095d92898fa87768322b73b333e522c",
+  "policy_sha256": "aab2b2549054206f9b29e0c30a16ce116b576495888f0aca7130a623a9db9b6b",
+  "warnings": [
+    {
+      "WarningType": "WildcardResource",
+      "Location": {
+        "PolicyIndex": 0,
+        "StatementIndex": 1
+      },
+      "Message": "Statement could not be scoped to specific resources and uses Resource \"*\". Review whether broad resource access is intended."
+    },
+    {
+      "WarningType": "WildcardResource",
+      "Location": {
+        "PolicyIndex": 0,
+        "StatementIndex": 3
+      },
+      "Message": "Statement could not be scoped to specific resources and uses Resource \"*\". Review whether broad resource access is intended."
+    },
+    {
+      "WarningType": "WildcardResource",
+      "Location": {
+        "PolicyIndex": 0,
+        "StatementIndex": 6
+      },
+      "Message": "Statement could not be scoped to specific resources and uses Resource \"*\". Review whether broad resource access is intended."
+    }
+  ],
+  "additional_action": "cloudtrail:LookupEvents",
+  "raw_live_audit_published": false
+}

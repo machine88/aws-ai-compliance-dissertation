@@ -22,8 +22,12 @@ run "bounded_reader" {
     error_message = "Trust must remain limited to the reviewed user."
   }
   assert {
-    condition     = alltrue([for action in local.actions : can(regex("^[^:]+:(Get|Describe)", action))]) && !contains(local.actions, "s3:GetObject") && !contains(local.actions, "sts:AssumeRole")
+    condition     = alltrue([for action in local.actions : (can(regex("^[^:]+:(Get|Describe)", action)) || action == "cloudtrail:LookupEvents")]) && !contains(local.actions, "s3:GetObject") && !contains(local.actions, "sts:AssumeRole")
     error_message = "Reader must have no mutation, object-content or role-chaining action."
+  }
+  assert {
+    condition     = contains(local.actions, "cloudtrail:LookupEvents") && local.boundary.Statement[7].Action == ["cloudtrail:LookupEvents"] && local.boundary.Statement[7].Resource == "*" && local.boundary.Statement[7].Condition.StringEquals["aws:RequestedRegion"] == "us-east-2"
+    error_message = "History inspection must use exactly LookupEvents with its Ohio condition."
   }
   assert {
     condition     = local.boundary.Statement[0].Effect == "Deny" && local.boundary.Statement[0].NotAction == local.actions && length(local.boundary.Statement[2].Resource) == 2 && local.boundary.Statement[4].Resource == var.config_rule_arns
