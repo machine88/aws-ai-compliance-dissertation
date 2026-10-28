@@ -40,7 +40,7 @@ variables {
 run "paused_and_private_by_default" {
   command = plan
   assert {
-    condition     = !aws_config_configuration_recorder_status.research.is_enabled && !aws_cloudtrail.research.enable_logging && length(aws_securityhub_standards_subscription.fsbp) == 0
+    condition     = !aws_config_configuration_recorder_status.research.is_enabled && !aws_cloudtrail.research.enable_logging && length(aws_securityhub_standards_subscription.fsbp) == 0 && !output.collection_enabled
     error_message = "Collection must not start by default."
   }
   assert {
@@ -60,6 +60,10 @@ run "collection_scope_and_delivery_policies" {
   command = plan
   variables {
     enable_collection = true
+  }
+  assert {
+    condition     = aws_config_configuration_recorder_status.research.is_enabled && aws_cloudtrail.research.enable_logging && output.collection_enabled
+    error_message = "Legacy all-on behavior must continue to request both telemetry services."
   }
   assert {
     condition     = length([for control in aws_securityhub_standards_control.fsbp : control if control.control_status == "ENABLED"]) == 2 && aws_securityhub_standards_control.fsbp["S3.5"].control_status == "ENABLED" && aws_securityhub_standards_control.fsbp["S3.8"].control_status == "ENABLED" && aws_securityhub_standards_control.fsbp["EC2.1"].control_status == "DISABLED"
@@ -127,6 +131,69 @@ run "reject_unbounded_user" {
   override_data {
     target = data.aws_caller_identity.current
     values = { account_id = "653464153304", arn = "arn:aws:iam::653464153304:user/test-operator" }
+  }
+  expect_failures = [terraform_data.identity_guard]
+}
+
+# Input: trail-only intent. Output: Config and CSPM remain paused, aggregate intent is accurate.
+run "cloudtrail_only_stage" {
+  command = plan
+  variables { enable_cloudtrail_logging = true }
+  assert {
+    condition     = aws_cloudtrail.research.enable_logging && !aws_config_configuration_recorder_status.research.is_enabled && length(aws_securityhub_standards_subscription.fsbp) == 0 && output.collection_enabled
+    error_message = "Trail-only staging must not activate Config or standards."
+  }
+}
+
+# Input: Config-only intent. Output: no trail logging or standard subscription is requested.
+run "config_only_stage" {
+  command = plan
+  variables { enable_config_recording = true }
+  assert {
+    condition     = aws_config_configuration_recorder_status.research.is_enabled && !aws_cloudtrail.research.enable_logging && length(aws_securityhub_standards_subscription.fsbp) == 0 && output.collection_enabled
+    error_message = "Config-only staging must leave CloudTrail and standards paused."
+  }
+}
+
+# Inputs: both telemetry switches. Output: still no potentially broad CSPM subscription.
+run "telemetry_without_cspm_stage" {
+  command = plan
+  variables {
+    enable_config_recording   = true
+    enable_cloudtrail_logging = true
+  }
+  assert {
+    condition     = aws_config_configuration_recorder_status.research.is_enabled && aws_cloudtrail.research.enable_logging && length(aws_securityhub_standards_subscription.fsbp) == 0 && length(aws_securityhub_standards_control.fsbp) == 0
+    error_message = "Telemetry staging must not silently subscribe to a CSPM standard."
+  }
+}
+
+# Inputs: Config and the reviewed standard. Output: retain explicit controls, leaving trail intent separate.
+run "config_and_cspm_without_trail" {
+  command = plan
+  variables {
+    enable_config_recording = true
+    enable_cspm_standard    = true
+  }
+  assert {
+    condition     = aws_config_configuration_recorder_status.research.is_enabled && !aws_cloudtrail.research.enable_logging && length(aws_securityhub_standards_subscription.fsbp) == 1 && length([for control in aws_securityhub_standards_control.fsbp : control if control.control_status == "ENABLED"]) == 2
+    error_message = "Independent CSPM staging must retain the reviewed control manifest and trail separation."
+  }
+}
+
+# Input: an incomplete CSPM instrument request. Output: fail before deployment.
+run "reject_cspm_without_recording" {
+  command = plan
+  variables { enable_cspm_standard = true }
+  expect_failures = [terraform_data.identity_guard]
+}
+
+# Inputs: legacy and independent positive switches together. Output: reject ambiguous activation intent.
+run "reject_mixed_activation_interfaces" {
+  command = plan
+  variables {
+    enable_collection         = true
+    enable_cloudtrail_logging = true
   }
   expect_failures = [terraform_data.identity_guard]
 }

@@ -6,5 +6,9 @@ region                    = "us-east-2"
 aws_profile               = "dissertation"
 budget_email              = "REPLACE_WITH_REVIEWED_EMAIL"
 monthly_budget_usd        = 100
+# Input: explicit service-stage intent. Output: all monitoring remains paused until separately approved.
 enable_collection         = false
+enable_config_recording   = false
+enable_cloudtrail_logging = false
+enable_cspm_standard      = false
 enabled_security_controls = ["S3.5", "S3.8"]

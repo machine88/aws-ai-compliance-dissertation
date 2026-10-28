@@ -17,7 +17,8 @@ output "config_recorder" {
 # Expose collection_enabled for verification and downstream tooling.
 # Inputs: the referenced resource attribute or protocol value. Outputs: this named Terraform result.
 output "collection_enabled" {
-  value = var.enable_collection
+  value       = local.config_recording_enabled || local.cloudtrail_logging_enabled || local.cspm_standard_enabled
+  description = "Any requested monitoring component is enabled; inspect the individual reviewed inputs for scope."
 }
 # Expose control_manifest_sha256 for verification and downstream tooling.
 # Inputs: the referenced resource attribute or protocol value. Outputs: this named Terraform result.

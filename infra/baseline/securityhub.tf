@@ -16,7 +16,7 @@ resource "aws_securityhub_account" "research" {
 # Subscribe only when collection activation has been approved.
 # Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_securityhub_standards_subscription" "fsbp" {
-  count         = var.enable_collection ? 1 : 0
+  count         = local.cspm_standard_enabled ? 1 : 0
   standards_arn = local.fsbp_arn
   depends_on    = [aws_securityhub_account.research]
   lifecycle {
@@ -31,7 +31,7 @@ resource "aws_securityhub_standards_subscription" "fsbp" {
 # Set the explicit enabled/disabled state of each reviewed standard control.
 # Inputs: the referenced variables, policy or resource IDs. Outputs: this resource's managed state and exported attributes.
 resource "aws_securityhub_standards_control" "fsbp" {
-  for_each              = var.enable_collection ? toset(local.fsbp.control_ids) : toset([])
+  for_each              = local.cspm_standard_enabled ? toset(local.fsbp.control_ids) : toset([])
   standards_control_arn = "${replace(aws_securityhub_standards_subscription.fsbp[0].id, "subscription/", "control/")}/${each.key}"
   control_status        = contains(var.enabled_security_controls, each.key) ? "ENABLED" : "DISABLED"
   disabled_reason       = contains(var.enabled_security_controls, each.key) ? null : "Outside initial dissertation S3 instrument scope"

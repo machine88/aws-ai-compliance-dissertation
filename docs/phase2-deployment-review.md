@@ -70,3 +70,7 @@ Live service permissions, real saved deployment plans, state recovery, budget de
 - S3 state locking: https://developer.hashicorp.com/terraform/language/backend/s3
 - Terraform mocks: https://developer.hashicorp.com/terraform/language/tests/mocking
 - Pricing: https://aws.amazon.com/config/pricing/ and https://aws.amazon.com/security-hub/pricing/ and https://aws.amazon.com/s3/pricing/ and https://aws.amazon.com/cloudtrail/pricing/
+
+## Independent stage follow-up
+
+Later source supports separately reviewed Config, CloudTrail and CSPM switches; see `staged-activation.md`. The original all-on request remains for compatibility. To pause an independently staged run, all three independent switches and enable_collection must be false. The original deployment/cost/state gates still apply; the historical plan above is not approval of a new activation.
