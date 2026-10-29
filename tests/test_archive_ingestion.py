@@ -14,6 +14,9 @@ from research.capture_sampling import audit_snapshot_sampling
 from research.catalog import canonical_sha256
 from research.state_frames import build_state_frame, FACT_OPERATIONS
 from research.frame_comparison import compare_state_frames
+from research.feature_bundle import build_feature_bundle
+from research.contracts import PROPOSAL_SHA256
+from research.ml import FEATURES
 from research.aws_reader import ACCOUNT, BUCKETS, READER_PREFIX, EncryptedArchive, read_plan
 from research.event_history import history_plan, scoped_events
 from datetime import datetime, timedelta, timezone
@@ -180,6 +183,116 @@ class ArchiveTests(unittest.TestCase):
         return {"sources": sources, "decrypt_record": self.decrypt, "recipient_sha256": self.pin,
                 "bucket": BUCKETS[0], "cutoff_at": "2026-01-01T00:03:52Z",
                 "max_acquisition_span_seconds": 22, "max_receipt_gap_seconds": 100}
+
+    def feature_bundle_fixture(self, recorded_at="2026-01-01T00:31:00Z", include_events=False):
+        """Prepare source-pinned synthetic history plus three separately encrypted state frames.
+
+        Inputs:
+            recorded_at: Synthetic receipt assigned to all five retained history pages.
+            include_events: Whether to add one successful policy call and one failed versioning call.
+        Outputs:
+            dict: Keyword arguments for the bundle builder; writes synthetic ciphertext only.
+        """
+        comparison = self.comparison_fixture(middle_changes={"get_bucket_versioning": {"response": {"Status": "Suspended"}}})
+        self.setUp()
+        self.archive.write(self.identity)
+        self.archive.write({"kind": "scope", "phase": "development", "bucket": BUCKETS[0],
+                            "location": {"LocationConstraint": "us-east-2"},
+                            "tags": {"TagSet": [{"Key": "Project", "Value": "aws-ai-compliance-dissertation"}]}})
+        plan = history_plan(BUCKETS[0], "2026-01-01T00:00:00Z", "2026-01-01T00:30:00Z",
+                            datetime(2026, 1, 1, 1, tzinfo=timezone.utc))
+        selected = 0
+        for request in plan:
+            name = request["params"]["LookupAttributes"][0]["AttributeValue"]
+            response = {"Events": []}
+            if include_events and name in {"PutBucketPolicy", "PutBucketVersioning"}:
+                event = {"eventID": name, "eventName": name, "eventSource": "s3.amazonaws.com",
+                         "recipientAccountId": ACCOUNT, "awsRegion": "us-east-2",
+                         "requestParameters": {"bucketName": BUCKETS[0]}, "eventTime": "2026-01-01T00:01:00Z",
+                         "managementEvent": True, "eventCategory": "Management", "readOnly": False,
+                         "eventType": "AwsApiCall", "userIdentity": {"principalId": name}}
+                if name == "PutBucketVersioning":
+                    event["errorCode"] = "AccessDenied"
+                response["Events"] = [{"EventId": name, "EventName": name, "CloudTrailEvent": json.dumps(event)}]
+                selected += 1
+            self.archive.write({"kind": "raw_history_page", "phase": "development", "request": request,
+                                "collector_recorded_at": recorded_at, "response": response})
+            self.archive.write({"kind": "scoped_history_page", "phase": "development", "request": request,
+                                **scoped_events(response, request, BUCKETS[0], recorded_at)})
+        self.archive.write({"kind": "history_inspection_complete", "phase": "development", "pages_complete": True,
+                            "decoding_complete": True, "delivery_verified": False, "primary_trial_ready": False,
+                            "page_count": 5, "selected_event_count": selected, "receipts": list(self.archive.receipts)})
+        verified = self.verify()
+        return {"history_source": {"root": self.archive.root, "archive_sha256": verified["archive_sha256"]},
+                "frame_sources": comparison["sources"], "decrypt_record": self.decrypt,
+                "recipient_sha256": self.pin, "bucket": BUCKETS[0],
+                "window": {"phase": "development", "proposal_sha256": PROPOSAL_SHA256,
+                           "window_start": "2026-01-01T00:00:00Z", "window_end": "2026-01-01T00:30:00Z",
+                           "closed_at": "2026-01-01T00:32:00Z"},
+                "max_acquisition_span_seconds": 22, "max_receipt_gap_seconds": 100}
+
+    def test_feature_bundle_binds_seven_components_without_releasing_ml(self):
+        """Join actual synthetic CMS sources and retain diagnostics at a synthetic cutoff edge.
+
+        Inputs:
+            Five history pages synthetically received at cutoff, two events and three state frames.
+        Outputs:
+            None: Asserts seven component names/counts, provenance and closed model/formal gates.
+        """
+        arguments = self.feature_bundle_fixture(recorded_at="2026-01-01T00:30:00Z", include_events=True)
+        result = build_feature_bundle(**arguments)
+        self.assertEqual(set(result["candidate_components"]), set(FEATURES))
+        self.assertEqual(result["candidate_components"]["mutation_count"], 1)
+        self.assertEqual(result["candidate_components"]["policy_change_count"], 1)
+        self.assertEqual(result["candidate_components"]["versioning_change_count"], 0)
+        self.assertEqual(result["candidate_components"]["principal_count"], 2)
+        self.assertEqual(result["candidate_components"]["failed_request_fraction"], 0.5)
+        self.assertEqual(result["candidate_components"]["configuration_delta_count"], 2)
+        self.assertIsNone(result["features"])
+        self.assertFalse(result["ml_ready"])
+        self.assertFalse(result["formal_trial_authorized"])
+        self.assertFalse(result["independent_ground_truth_used"])
+        self.assertIn("provider_delivery_unverified", result["blockers"])
+        self.assertIn("sampling_schedule_unbound", result["blockers"])
+        self.assertNotIn('"root"', json.dumps(result))
+        self.assertNotIn('"response"', json.dumps(result))
+
+    def test_late_empty_history_never_becomes_complete_zero_features(self):
+        """Keep quiet retrospective pages late even when no selected event exists.
+
+        Inputs:
+            Genuine synthetic empty history pages received a minute after cutoff.
+        Outputs:
+            None: Asserts null event components, retained diagnostic zeros and no vector.
+        """
+        result = build_feature_bundle(**self.feature_bundle_fixture())
+        self.assertEqual(result["history_late_page_count"], 5)
+        self.assertEqual(result["event_audit"]["counts"]["mutation_count"], 0)
+        self.assertIsNone(result["candidate_components"]["mutation_count"])
+        self.assertIsNone(result["features"])
+        self.assertIn("history_pages_recorded_after_cutoff", result["blockers"])
+
+    def test_feature_bundle_rejects_substitution_and_false_closure(self):
+        """Refuse swapped source pins, mismatched windows, labels and backdated closure.
+
+        Inputs:
+            Independent malformed source/window variants of an otherwise valid synthetic bundle.
+        Outputs:
+            None: Asserts fail-closed validation before any feature bundle is returned.
+        """
+        arguments = self.feature_bundle_fixture()
+        changed_windows = [{**arguments["window"], "phase": "pilot"},
+                           {**arguments["window"], "expected": "compliant"},
+                           {**arguments["window"], "closed_at": "2026-01-01T00:30:59Z"},
+                           {**arguments["window"], "window_start": "2026-01-01T00:01:00Z",
+                            "window_end": "2026-01-01T00:31:00Z"}]
+        for window in changed_windows:
+            with self.assertRaises(ValueError):
+                build_feature_bundle(**{**arguments, "window": window})
+        with self.assertRaises(ValueError):
+            build_feature_bundle(**{**arguments, "history_source": {**arguments["history_source"], "archive_sha256": "0"*64}})
+        with self.assertRaises(ValueError):
+            build_feature_bundle(**{**arguments, "history_source": {**arguments["history_source"], "delivery_verified": True}})
 
     def test_adjacent_frame_changes_and_restoration_are_counted(self):
         """Count changed booleans across adjacent acquisitions, including a captured reversal.
