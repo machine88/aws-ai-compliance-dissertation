@@ -13,9 +13,10 @@ from research.archive_ingestion import verify_archive, verify_history_records
 from research.capture_sampling import audit_snapshot_sampling
 from research.catalog import canonical_sha256
 from research.state_frames import build_state_frame, FACT_OPERATIONS
+from research.frame_comparison import compare_state_frames
 from research.aws_reader import ACCOUNT, BUCKETS, READER_PREFIX, EncryptedArchive, read_plan
 from research.event_history import history_plan, scoped_events
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 class ArchiveTests(unittest.TestCase):
@@ -124,12 +125,13 @@ class ArchiveTests(unittest.TestCase):
         self.assertFalse(result["formal_trial_authorized"])
         self.assertFalse(result["normalized"]["ml_ready"])
 
-    def frame_fixture(self, changes=None, legacy=False):
+    def frame_fixture(self, changes=None, legacy=False, offset_seconds=0):
         """Create a genuine synthetic archive with six facts from three separate read intervals.
 
         Inputs:
             changes: Optional per-operation edits to the synthetic response/timing envelope.
             legacy: When true omit request-start clocks without reconstructing them.
+            offset_seconds: Whole synthetic time shift applied to the three fixture intervals.
         Outputs:
             dict: Keyword arguments for build_state_frame; writes only synthetic ciphertext.
         """
@@ -143,10 +145,11 @@ class ArchiveTests(unittest.TestCase):
                   "get_bucket_policy": {"Policy": json.dumps(policy)}}
         updates = {}
         for operation, offset in [("get_public_access_block", 10), ("get_bucket_versioning", 20), ("get_bucket_policy", 30)]:
+            start = datetime(2026, 1, 1, tzinfo=timezone.utc)+timedelta(seconds=offset_seconds+offset)
             updates[operation] = {"response": bodies[operation],
-                                  "collector_recorded_at": f"2026-01-01T00:00:{offset+2:02d}Z"}
+                                  "collector_recorded_at": (start+timedelta(seconds=2)).isoformat().replace("+00:00", "Z")}
             if not legacy:
-                updates[operation]["request_started_at"] = f"2026-01-01T00:00:{offset:02d}Z"
+                updates[operation]["request_started_at"] = start.isoformat().replace("+00:00", "Z")
             updates[operation].update((changes or {}).get(operation, {}))
         self.snapshot(record_updates=updates)
         verified = self.verify()
@@ -154,7 +157,114 @@ class ArchiveTests(unittest.TestCase):
                 if r.get("request", {}).get("operation") in set(FACT_OPERATIONS.values())}
         return {"root": self.archive.root, "decrypt_record": self.decrypt, "recipient_sha256": self.pin,
                 "bucket": BUCKETS[0], "archive_sha256": verified["archive_sha256"], "record_pins": pins,
-                "cutoff_at": "2026-01-01T00:00:32Z", "max_acquisition_span_seconds": 22}
+                "cutoff_at": (datetime(2026, 1, 1, tzinfo=timezone.utc)+timedelta(seconds=offset_seconds+32)).isoformat(),
+                "max_acquisition_span_seconds": 22}
+
+    def comparison_fixture(self, middle_changes=None, legacy_middle=False):
+        """Prepare three independently encrypted snapshots at separate synthetic acquisitions.
+
+        Inputs:
+            middle_changes: Optional per-operation edits for the middle frame only.
+            legacy_middle: Whether the middle archive omits request-start clocks.
+        Outputs:
+            dict: Keyword arguments for compare_state_frames; writes only test ciphertext.
+        """
+        sources = []
+        for index, offset in enumerate((0, 100, 200)):
+            if sources:
+                self.setUp()
+            arguments = self.frame_fixture(changes=middle_changes if index == 1 else None,
+                                           legacy=legacy_middle and index == 1, offset_seconds=offset)
+            sources.append({"frame_id": f"frame-{index}", "root": arguments["root"],
+                            "archive_sha256": arguments["archive_sha256"], "record_pins": arguments["record_pins"]})
+        return {"sources": sources, "decrypt_record": self.decrypt, "recipient_sha256": self.pin,
+                "bucket": BUCKETS[0], "cutoff_at": "2026-01-01T00:03:52Z",
+                "max_acquisition_span_seconds": 22, "max_receipt_gap_seconds": 100}
+
+    def test_adjacent_frame_changes_and_restoration_are_counted(self):
+        """Count changed booleans across adjacent acquisitions, including a captured reversal.
+
+        Inputs:
+            Synthetic versioning true/false/true sequence with exact 100-second receipt gaps.
+        Outputs:
+            None: Asserts two candidate changes, preserved hashes, bounded timing and no ML release.
+        """
+        arguments = self.comparison_fixture(middle_changes={"get_bucket_versioning": {"response": {"Status": "Suspended"}}})
+        result = compare_state_frames(**arguments)
+        self.assertEqual(result["candidate_configuration_delta_count"], 2)
+        self.assertEqual(result["known_changed_comparisons"], 2)
+        self.assertEqual(result["known_unchanged_comparisons"], 10)
+        self.assertEqual(result["unresolved_comparisons"], 0)
+        self.assertTrue(result["local_comparison_checks_passed"])
+        self.assertEqual(len(result["frames"]), 3)
+        self.assertTrue(all(item["receipt_gap_seconds"] == 100 for item in result["comparisons"]))
+        self.assertNotIn('"root"', json.dumps(result))
+        self.assertNotIn('"response"', json.dumps(result))
+        for key in ["ml_ready", "formal_trial_authorized", "source_freshness_verified", "provider_delivery_verified", "sender_authenticated"]:
+            self.assertFalse(result[key])
+
+    def test_unknown_middle_is_not_bridged_or_imputed(self):
+        """Keep unknown intermediate facts unresolved on both adjacent comparisons.
+
+        Inputs:
+            Synthetic middle public-access response without any of its four flags.
+        Outputs:
+            None: Asserts eight unresolved comparisons and no candidate count, despite known endpoints.
+        """
+        result = compare_state_frames(**self.comparison_fixture(middle_changes={"get_public_access_block": {"response": {}}}))
+        self.assertIsNone(result["candidate_configuration_delta_count"])
+        self.assertEqual(result["unresolved_comparisons"], 8)
+        self.assertEqual(result["known_unchanged_comparisons"], 4)
+        self.assertEqual(result["known_changed_comparisons"], 0)
+        self.assertTrue(all(item["changed"] is None for item in result["comparisons"] if item["fact"] == "block_public_acls"))
+
+    def test_frame_comparison_gaps_lateness_and_legacy_stay_blocked(self):
+        """Withhold candidate counts for excessive gaps, late facts and missing request clocks.
+
+        Inputs:
+            Synthetic middle legacy frame, stricter receipt gap and earlier cutoff variants.
+        Outputs:
+            None: Asserts explicit blockers and no zero-imputation into the candidate feature.
+        """
+        arguments = self.comparison_fixture(legacy_middle=True)
+        legacy = compare_state_frames(**arguments)
+        self.assertIsNone(legacy["candidate_configuration_delta_count"])
+        self.assertEqual(legacy["unresolved_comparisons"], 12)
+        self.assertTrue(any(b["reason"] == "missing_request_timing" for b in legacy["blockers"]))
+        arguments["max_receipt_gap_seconds"] = 99
+        gap = compare_state_frames(**arguments)
+        self.assertTrue(any(b["reason"] == "receipt_gap_exceeds_bound" for b in gap["blockers"]))
+        arguments["cutoff_at"] = "2026-01-01T00:03:51Z"
+        late = compare_state_frames(**arguments)
+        self.assertTrue(any(b["reason"] == "received_after_cutoff" for b in late["blockers"]))
+        self.assertIsNone(late["candidate_configuration_delta_count"])
+        self.assertNotEqual(legacy["input_sha256"], gap["input_sha256"])
+
+    def test_frame_comparison_rejects_reordering_reuse_and_overrides(self):
+        """Refuse reordered/reused snapshots and caller-supplied facts or expected labels.
+
+        Inputs:
+            Independent mutations of valid encrypted source bindings and timing bounds.
+        Outputs:
+            None: Asserts fail-closed validation before producing a comparison report.
+        """
+        arguments = self.comparison_fixture()
+        quiet = compare_state_frames(**arguments)
+        self.assertEqual(quiet["candidate_configuration_delta_count"], 0)
+        self.assertTrue(quiet["local_comparison_checks_passed"])
+        gap = compare_state_frames(**{**arguments, "max_receipt_gap_seconds": 99})
+        self.assertIsNone(gap["candidate_configuration_delta_count"])
+        self.assertEqual(gap["unresolved_comparisons"], 12)
+        span = compare_state_frames(**{**arguments, "max_acquisition_span_seconds": 21})
+        self.assertIsNone(span["candidate_configuration_delta_count"])
+        self.assertTrue(any(b["reason"] == "frame_acquisition_span_exceeds_bound" for b in span["blockers"]))
+        for changes in [{"sources": list(reversed(arguments["sources"]))},
+                        {"sources": [arguments["sources"][0], {**arguments["sources"][0], "frame_id": "reused"}]},
+                        {"sources": [{**arguments["sources"][0], "expected": "compliant"}, arguments["sources"][1]]},
+                        {"max_receipt_gap_seconds": True}, {"max_receipt_gap_seconds": -1},
+                        {"sources": arguments["sources"][:1]}]:
+            with self.assertRaises(ValueError):
+                compare_state_frames(**{**arguments, **changes})
 
     def test_state_frame_retains_per_fact_intervals(self):
         """Combine six known facts while keeping three independent source intervals visible.
