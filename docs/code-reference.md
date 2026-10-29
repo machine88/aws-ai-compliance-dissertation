@@ -104,3 +104,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Development prospective runner
 
 `research/prospective_runner.py` provides `DevelopmentSamplingRunner` with explicit plan/scope pins, trusted silent collector/journal callbacks and injectable clocks/sleep. It preserves target deadlines, records missed/late/error invocations, aborts on clock/persistence faults and returns only after administrative closure. It has no native AWS integration or verified-trigger claim. See [prospective-runner.md](prospective-runner.md).
+
+## Native read-only capture wrapper
+
+`research/native_capture.py` prepares/revalidates local scope, binds native CMS journal/snapshot callbacks, kills timed-out worker groups and fingerprints private ciphertext without decrypting it. `scripts/prospective_snapshot_worker.py` lazily verifies the source user and uses the existing reader role in memory. `EncryptedArchive` adds an optional local crypto timeout; legacy callers preserve their default behavior. Fatal CollectorAbort errors stop the runner. See [native-capture.md](native-capture.md).

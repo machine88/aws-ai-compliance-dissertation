@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from research.catalog import canonical_sha256
 from research.contracts import PROPOSAL_SHA256
-from research.prospective_runner import DevelopmentSamplingRunner
+from research.prospective_runner import DevelopmentSamplingRunner, CollectorAbort
 
 
 class RunnerTests(unittest.TestCase):
@@ -256,6 +256,29 @@ class RunnerTests(unittest.TestCase):
         with self.assertRaises(OSError):
             self.runner(persist=failing).run()
         self.assertEqual(self.calls, [])
+
+    def test_fatal_collector_scope_failure_stops_the_schedule(self):
+        """Propagate a trusted native collector's fatal scope/identity guard failure.
+
+        Inputs:
+            Synthetic fatal callback, without any worker process or AWS operation.
+        Outputs:
+            None: Asserts no subsequent sample or healthy closure marker is produced.
+        """
+        def fatal(sample_id):
+            """Reject a synthetic scope before performing any collection.
+
+            Inputs:
+                sample_id: Scheduled identifier retained only in fixture call history.
+            Outputs:
+                None: Raises CollectorAbort immediately.
+            """
+            self.calls.append((sample_id, self.now))
+            raise CollectorAbort("synthetic fatal scope failure")
+        with self.assertRaises(CollectorAbort):
+            self.runner(collect=fatal).run()
+        self.assertEqual(len(self.calls), 1)
+        self.assertFalse(any(event["kind"] == "run_closed" for event in self.journal))
 
     def test_clock_jump_stall_and_extra_outputs_abort(self):
         """Fail closed on diverging clocks, a stalled scheduler or unexpected collector payloads.

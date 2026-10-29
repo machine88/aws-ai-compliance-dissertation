@@ -9,6 +9,10 @@ from research.timing import require_sha256, utc_timestamp
 from research.trials import safe_id
 
 
+class CollectorAbort(RuntimeError):
+    """Stop the schedule for a trusted collector's fatal scope or identity failure."""
+
+
 class DevelopmentSamplingRunner:
     """Schedule bounded development collector callbacks without scores, labels or cloud clients."""
 
@@ -145,6 +149,8 @@ class DevelopmentSamplingRunner:
                 continue
             try:
                 response = self.collect(identifier)
+            except CollectorAbort:
+                raise
             except Exception:
                 # Do not retain exception text that could contain credentials or raw service data.
                 recorded, recorded_mono = self.clocks()

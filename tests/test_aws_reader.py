@@ -20,6 +20,21 @@ from research.timing import utc_timestamp
 class ReaderTests(unittest.TestCase):
     """Exercise boundaries using real SDK shapes and synthetic local certificates."""
 
+    def test_explicit_crypto_timeout_is_validated_and_forwarded(self):
+        """Bound local crypto execution when the native wrapper requests a deadline.
+
+        Inputs:
+            Invalid boolean timeout and a mocked OpenSSL timeout before file creation.
+        Outputs:
+            None: Asserts timeout validation/forwarding and propagation without plaintext or output files.
+        """
+        with self.assertRaises(ValueError):
+            EncryptedArchive("/unused", "/unused-public.pem", timeout_seconds=True)
+        with patch("research.aws_reader.subprocess.run", side_effect=subprocess.TimeoutExpired("synthetic-openssl", 1)) as command:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                EncryptedArchive("/unused", "/unused-public.pem", timeout_seconds=1)
+        self.assertEqual(command.call_args.kwargs["timeout"], 1)
+
     def test_scope_and_identity(self):
         """Reject unreviewed resources and principals.
 

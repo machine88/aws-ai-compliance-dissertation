@@ -99,28 +99,32 @@ def json_default(value):
 class EncryptedArchive:
     """Write only CMS-encrypted evidence using a public recipient certificate."""
 
-    def __init__(self, root, certificate, openssl=None):
+    def __init__(self, root, certificate, openssl=None, timeout_seconds=None):
         """Validate encryption prerequisites and reserve a new private output directory.
 
         Inputs:
             root: New directory path; existing paths are rejected.
             certificate: Public RSA recipient certificate path, never a private key.
             openssl: Optional OpenSSL 3 executable path.
+            timeout_seconds: Optional integer 1..300 local crypto deadline; None preserves legacy behavior.
         Outputs:
             None: Creates a mode-700 directory and public certificate copy after validation.
         """
+        if timeout_seconds is not None and (type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 300):
+            raise ValueError("Bounded integer crypto timeout required")
+        self.timeout_seconds = timeout_seconds
         self.binary = openssl or ("/opt/homebrew/opt/openssl@3/bin/openssl" if Path("/opt/homebrew/opt/openssl@3/bin/openssl").exists() else shutil.which("openssl"))
-        version = subprocess.run([self.binary, "version"], check=True, capture_output=True).stdout.decode()
+        version = subprocess.run([self.binary, "version"], check=True, capture_output=True, timeout=self.timeout_seconds).stdout.decode()
         if not re.match(r"OpenSSL [3-9]\.", version):
             raise ValueError("OpenSSL 3 or newer is required")
         public = Path(certificate).read_bytes()
         if b"PRIVATE KEY" in public:
             raise ValueError("Supply only a public certificate, never a private key")
         # Normalize the certificate so extra input text cannot enter the plaintext copy.
-        public = subprocess.run([self.binary, "x509", "-outform", "PEM"], input=public, check=True, capture_output=True).stdout
-        subprocess.run([self.binary, "x509", "-checkend", "0", "-noout"], input=public, check=True, capture_output=True)
-        key = subprocess.run([self.binary, "x509", "-pubkey", "-noout"], input=public, check=True, capture_output=True).stdout
-        details = subprocess.run([self.binary, "pkey", "-pubin", "-text", "-noout"], input=key, check=True, capture_output=True).stdout.decode()
+        public = subprocess.run([self.binary, "x509", "-outform", "PEM"], input=public, check=True, capture_output=True, timeout=self.timeout_seconds).stdout
+        subprocess.run([self.binary, "x509", "-checkend", "0", "-noout"], input=public, check=True, capture_output=True, timeout=self.timeout_seconds)
+        key = subprocess.run([self.binary, "x509", "-pubkey", "-noout"], input=public, check=True, capture_output=True, timeout=self.timeout_seconds).stdout
+        details = subprocess.run([self.binary, "pkey", "-pubin", "-text", "-noout"], input=key, check=True, capture_output=True, timeout=self.timeout_seconds).stdout.decode()
         bits = re.search(r"Public-Key: \((\d+) bit\)", details)
         if not bits or int(bits.group(1)) < 3072 or "Modulus:" not in details:
             raise ValueError("RSA recipient key must have at least 3072 bits")
@@ -142,7 +146,7 @@ class EncryptedArchive:
         """
         plaintext = json.dumps(value, default=json_default, sort_keys=True).encode()
         # Authenticated content encryption protects raw evidence even on unencrypted disks.
-        encrypted = subprocess.run([self.binary, "cms", "-encrypt", "-binary", "-aes-256-gcm", "-outform", "DER", "-recip", str(self.cert), "-keyopt", "rsa_padding_mode:oaep", "-keyopt", "rsa_oaep_md:sha256"], input=plaintext, check=True, capture_output=True).stdout
+        encrypted = subprocess.run([self.binary, "cms", "-encrypt", "-binary", "-aes-256-gcm", "-outform", "DER", "-recip", str(self.cert), "-keyopt", "rsa_padding_mode:oaep", "-keyopt", "rsa_oaep_md:sha256"], input=plaintext, check=True, capture_output=True, timeout=self.timeout_seconds).stdout
         name = f"record-{len(self.receipts):05d}.cms"
         with (self.root / name).open("xb") as stream:
             (self.root / name).chmod(0o600)
