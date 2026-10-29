@@ -14,6 +14,7 @@ from botocore.stub import Stubber
 from botocore.exceptions import ClientError
 from research.aws_reader import ACCOUNT, BUCKETS, READER_PREFIX, EncryptedArchive, check_scope, read_plan, verify_identity
 from scripts.collect_snapshot import main
+from research.timing import utc_timestamp
 
 
 class ReaderTests(unittest.TestCase):
@@ -101,6 +102,10 @@ class ReaderTests(unittest.TestCase):
         self.assertTrue(any(record["kind"] == "absent" for record in records))
         self.assertTrue(any(record["kind"] == "instrumentation_error" for record in records))
         self.assertFalse(records[-1]["complete"])
+        for record in records:
+            if record["kind"] in {"response", "absent", "instrumentation_error"}:
+                self.assertLessEqual(utc_timestamp(record["request_started_at"].isoformat()),
+                                     utc_timestamp(record["collector_recorded_at"].isoformat()))
 
     def test_wrong_identity_stops_resource_reads(self):
         """Stop immediately after STS rejects a non-reader identity.
@@ -140,6 +145,10 @@ class ReaderTests(unittest.TestCase):
             self.assertEqual(main(["--output", "/unused", "--recipient-cert", "/unused-public.pem", "--max-pages", "1"], Mock(return_value=session)), 1)
         self.assertEqual(next(remaining), {"Findings": []})
         self.assertTrue(any(call.args[0].get("reason") == "page_cap" for call in archive.write.call_args_list))
+        findings = [call.args[0] for call in archive.write.call_args_list
+                    if call.args[0].get("kind") == "response" and call.args[0]["request"]["paginated"]]
+        self.assertEqual(len(findings), 1)
+        self.assertNotIn("request_started_at", findings[0])
 
     def test_encrypted_archive_roundtrip(self):
         """Prove raw evidence is encrypted and decrypts to its original JSON.
