@@ -13,6 +13,36 @@ class CollectorAbort(RuntimeError):
     """Stop the schedule for a trusted collector's fatal scope or identity failure."""
 
 
+def validate_runner_plan(plan, approved_plan_sha256):
+    """Validate a source-locked runner declaration without executing any dependency.
+
+    Inputs:
+        plan: Exact development plan, collector scope pin and sampling settings.
+        approved_plan_sha256: Independently trusted fingerprint of the approved plan.
+    Outputs:
+        tuple: Copied plan and UTC reference/cutoff/planned-closure times; no IO or callbacks.
+            Invalid schemas, bounds or mismatched fingerprints raise ValueError.
+    """
+    keys = {"phase", "kind", "proposal_sha256", "run_id", "sampling", "max_clock_skew_seconds", "collector_scope_sha256"}
+    if not isinstance(plan, dict) or set(plan) != keys or plan["phase"] != "development" or plan["kind"] != "development_sampling" or plan["proposal_sha256"] != PROPOSAL_SHA256:
+        raise ValueError("Exact source-locked development runner plan required")
+    safe_id(plan["run_id"])
+    require_sha256(plan["collector_scope_sha256"])
+    audit_sampling(plan["sampling"], [])
+    skew = nonnegative_seconds(plan["max_clock_skew_seconds"])
+    if skew > 60:
+        raise ValueError("Development clock-skew bound must not exceed 60 seconds")
+    start = utc_timestamp(plan["sampling"]["trigger_at"])
+    end = start + timedelta(seconds=WINDOW_SECONDS)
+    closure = utc_timestamp(plan["sampling"]["closed_at"])
+    if closure > end + timedelta(seconds=WINDOW_SECONDS):
+        raise ValueError("Development administrative grace must not exceed 1800 seconds")
+    require_sha256(approved_plan_sha256)
+    if canonical_sha256(plan) != approved_plan_sha256:
+        raise ValueError("Runner plan differs from independently reviewed plan hash")
+    return copy.deepcopy(plan), start, end, closure
+
+
 class DevelopmentSamplingRunner:
     """Schedule bounded development collector callbacks without scores, labels or cloud clients."""
 
@@ -31,26 +61,10 @@ class DevelopmentSamplingRunner:
             None: Validates/copies the plan and stores callbacks; performs no collection or persistence.
             Malformed plans or mismatched approved hashes raise ValueError before callbacks run.
         """
-        keys = {"phase", "kind", "proposal_sha256", "run_id", "sampling", "max_clock_skew_seconds", "collector_scope_sha256"}
-        if not isinstance(plan, dict) or set(plan) != keys or plan["phase"] != "development" or plan["kind"] != "development_sampling" or plan["proposal_sha256"] != PROPOSAL_SHA256:
-            raise ValueError("Exact source-locked development runner plan required")
-        safe_id(plan["run_id"])
-        require_sha256(plan["collector_scope_sha256"])
-        audit_sampling(plan["sampling"], [])
-        skew = nonnegative_seconds(plan["max_clock_skew_seconds"])
-        if skew > 60:
-            raise ValueError("Development clock-skew bound must not exceed 60 seconds")
-        self.start = utc_timestamp(plan["sampling"]["trigger_at"])
-        self.end = self.start + timedelta(seconds=WINDOW_SECONDS)
-        self.closure = utc_timestamp(plan["sampling"]["closed_at"])
-        if self.closure > self.end + timedelta(seconds=WINDOW_SECONDS):
-            raise ValueError("Development administrative grace must not exceed 1800 seconds")
-        require_sha256(approved_plan_sha256)
-        if canonical_sha256(plan) != approved_plan_sha256:
-            raise ValueError("Runner plan differs from independently reviewed plan hash")
+        validated, self.start, self.end, self.closure = validate_runner_plan(plan, approved_plan_sha256)
         if not all(callable(callback) for callback in (collect, persist, wall_clock, monotonic_clock, sleeper)):
             raise ValueError("Explicit trusted collector, journal and clock callbacks required")
-        self.plan, self.plan_sha256 = copy.deepcopy(plan), approved_plan_sha256
+        self.plan, self.plan_sha256 = validated, approved_plan_sha256
         self.collect, self.persist = collect, persist
         self.wall_clock, self.monotonic_clock, self.sleeper = wall_clock, monotonic_clock, sleeper
         self.used = False
@@ -145,7 +159,7 @@ class DevelopmentSamplingRunner:
             if requested > deadline or (sample["offset_seconds"] < 0 and requested >= self.start):
                 skipped.append(identifier)
                 self.write({"kind": "sample_skipped", "sample_id": identifier,
-                            "reason": "start_deadline_missed", "recorded_at": requested.isoformat()})
+                            "reason": "start_deadline_missed", "recorded_at": requested.isoformat(), "monotonic_seconds": requested_mono})
                 continue
             try:
                 response = self.collect(identifier)

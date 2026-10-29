@@ -108,3 +108,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Native read-only capture wrapper
 
 `research/native_capture.py` prepares/revalidates local scope, binds native CMS journal/snapshot callbacks, kills timed-out worker groups and fingerprints private ciphertext without decrypting it. `scripts/prospective_snapshot_worker.py` lazily verifies the source user and uses the existing reader role in memory. `EncryptedArchive` adds an optional local crypto timeout; legacy callers preserve their default behavior. Fatal CollectorAbort errors stop the runner. See [native-capture.md](native-capture.md).
+
+## Native journal/source verification and relative plans
+
+`research/native_verification.py` checks independent plan/scope/final-receipt pins, replays exact events/clocks and timing audits, then verifies successful snapshots against invocation timing and read caps. Shared `read_archive_records` and `validate_runner_plan` retain prior semantics without cloud calls. `research/capture_template.py` deterministically resolves a human-approved relative schedule into a separately retained absolute plan before execution. See [native-verification.md](native-verification.md).
