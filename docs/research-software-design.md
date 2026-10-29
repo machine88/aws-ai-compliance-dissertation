@@ -1,6 +1,6 @@
 # Research design contracts: development only
 
-The paused monitoring foundation is deployed, including both Config rules. The reviewed recovery succeeded and the final live resource plan reported no changes. Config recording and CloudTrail logging remain off; Security Hub has no standards enabled. The $100 monthly budget and four email alert subscriptions are configured; receipt has not been demonstrated. No research trials have run.
+The paused monitoring foundation is deployed, including both Config rules. The reviewed recovery succeeded and the final live resource plan reported no changes. The approved CloudTrail-only development stage is logging; Config recording remains paused and Security Hub has no standards enabled. The $100 monthly budget and four email alert subscriptions are configured; receipt has not been demonstrated. No research trials have run.
 
 ## What this change implements
 
@@ -45,7 +45,7 @@ The full proposal still requires EC2, Lambda, EKS, VPC and IAM in addition to S3
 
 Run `python3 scripts/audit_catalog.py`, `python3 scripts/check_function_docs.py` and `python3 -m unittest discover -s tests -v`. Tests use synthetic design fixtures; none contact AWS. Every function has a brief description.
 
-The input facts are proposed booleans, not a frozen Isolation Forest feature schema. A development-only Isolation Forest, bounded adaptation and evidence-gated mapping are now implemented in `research/ml.py`; see `ai-ml-pipeline.md`. Real collectors, the trigger/timing controller, immutable formal-run authorization and R power/inferential analyses remain to implement. Do not interpret successful contract tests as empirical validation.
+The input facts are proposed booleans, not a frozen Isolation Forest feature schema. A development-only Isolation Forest, bounded adaptation and evidence-gated mapping are now implemented in `research/ml.py`; see `ai-ml-pipeline.md`. Encrypted real-source collectors, a native development scheduler and offline journal/source verification now exist. An integrated paired experiment controller, verified trigger/restoration, immutable formal-run authorization and R power/inferential analyses remain to implement. Do not interpret successful contract tests as empirical validation.
 
 ## Proposal traceability and next implementation
 

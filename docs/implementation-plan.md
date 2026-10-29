@@ -1,41 +1,51 @@
-# Implementation plan — pending review
+# Implementation plan and current completion boundary
 
-## Verified status (2026-10-26)
-Repository cloned at 4e239a8. Initial contents: README and .gitignore only.
-AWS identity verified through STS: account 653464153304, IAM user martin-morales-personal, profile dissertation; default region us-east-2. Root sessions were cleared and are not used. AWS Agent Toolkit installed locally; account-service inventory and service permissions remain unverified. No research resources deployed.
-Final proposal read and SHA-256 recorded: `99ad4b0aa5e1af82346f5e8b0bb1e8388b48726dc8815b8f68bddf3df896f5db`. See proposal-traceability.md for section-level requirements and unresolved implementation details.
-Terraform and R have not been installed or validated. GitHub connector authenticated as machine88; draft PR #1 contains the initial foundation.
+The final proposal is the methodological source of truth. Its recorded SHA-256 is `99ad4b0aa5e1af82346f5e8b0bb1e8388b48726dc8815b8f68bddf3df896f5db`; [proposal traceability](proposal-traceability.md) identifies its requirements and open implementation decisions. This plan supersedes the initial October 26 setup assumptions. Historical deployment reviews describe their own approval scope, not new authorization.
 
-## Phase 1 — local foundation
-1. Maintain final proposal SHA-256 and section-referenced requirements matrix: questions, units, services, features, adaptation limits, partitions, estimands, censoring and exclusions.
-2. Verify target-account short-lived identity and inspect regional Config recorders/delivery channels, Security Hub configuration and organization ownership, CloudTrail trails, billing controls and existing state. Read only. Do not import or replace shared resources without review.
-3. Establish tested evidence contracts, independent scenario specifications, immutable protocol versioning and offline fixtures.
-4. Review a provider-validated Terraform plan and itemized estimate before deployment.
+## What is implemented
 
-## Permissions and isolation
-Use AWS IAM Identity Center/SSO or an assumed research role; no root credentials, long-lived keys in files, or secrets in chat. Inspection role: sts:GetCallerIdentity, config:DescribeConfigurationRecorders, config:DescribeDeliveryChannels, config:DescribeConfigurationRecorderStatus, securityhub:DescribeHub, securityhub:GetEnabledStandards, cloudtrail:DescribeTrails, budgets:ViewBudget and ce:GetCostAndUsage, with unavoidable list/describe wildcard resources documented. No automatic role creation or administrator access.
-Deployment role must have a reviewed action/resource allowlist for research-prefixed buckets, service roles, trail and selected monitoring configuration. Restrict iam:PassRole to the dedicated Config role and service. Separate state access; session duration <=1 hour. Deny organization changes, credential creation and unrelated resource deletion.
-Use a dedicated region, research tags and resource namespace. Account-wide monitoring may inspect unrelated workloads: inventory and agree scope first. Do not create public buckets, live exposed workloads, NAT gateways or public credentials for a scenario. EKS is required by the final proposal but deferred to a separately costed and approved phase; no EKS cluster is authorized in Phase 1.
+| Area | Current capability | Remaining boundary |
+|---|---|---|
+| AWS foundation | Version-controlled Terraform; separate protected state, deployment access, baseline and evidence-reader roots | Any further infrastructure or monitoring activation needs a reviewed plan |
+| Monitoring | Approved CloudTrail-only development stage is logging | Config recording is paused; Security Hub CSPM has no enabled standards |
+| Cost controls | $100 monthly account-wide alert budget with actual 50/80/100% and forecast 100% notifications configured | Email receipt is unproven; alerts do not cap spending |
+| Evidence | Encrypted snapshot/history collectors; private receipt chains; dedicated local Keychain decryption helper; source and timing verification | Trigger, telemetry freshness, delivery completeness and formal paired monitoring remain unvalidated |
+| Prospective instrument | Fixed-horizon native runner with bounded reader workers and offline journal/source replay | A development capture does not establish pilot or confirmatory readiness |
+| AI/ML | Local Isolation Forest prototype, seven proposed features, bounded adaptation, deterministic evidence-gated mapping and score-before-adapt protections | No study model has been trained; real feature release remains blocked by missing validity and independence requirements |
+| Scenario catalog | Twelve balanced draft S3 cases, independently specified expected answers, family/overlap checks and guarded freeze | Six-service coverage, source/assessment validation, viable independent splits and external review remain incomplete |
+| Analysis | Paired prediction/timing contracts and explicit handling of missing evidence and non-detections | R runtime, power simulations and inferential analysis are not implemented; no minimum sample size is established |
 
-## Budget proposal — not approved
-Propose USD 25 monthly research ceiling, USD 5 first-pilot review threshold, 24-hour initial deployment window and one region. These are proposed spending limits, not price estimates or guaranteed caps. Before approval calculate Config recording/evaluations, Security Hub checks, CloudTrail events, S3 requests/storage and state costs from current regional rates and observed account volume. Account-wide monitoring can dominate costs.
-Configure forecast and actual alerts at 50%, 80% and 100% to a user-selected destination. AWS Budgets alerts are delayed and do not stop spending. Require a teardown appointment, manual cost review before each run and no continuous compute. Keep data events and broad resource recording disabled unless protocol requires and estimate includes them. Preserve evidence during teardown.
+No pilot or confirmatory research trials have been collected. Synthetic engineering fixtures and actual development captures remain separate from both research phases. Software checks cannot be reported as empirical accuracy, latency improvement or achieved statistical power.
 
-## Terraform state and deployment gate
-Use separately bootstrapped private S3 state storage, encryption, versioning, TLS enforcement and native lockfiles. Separate keys for bootstrap, baseline, development, pilot and confirmatory, including account and region. No credentials in backend configuration. No local state committed. Retention and recovery documented before use.
-No apply automation in Phase 1. Required gate: verified target ARN/account, final proposal traceability, approved region/scope, least-privilege policies, existing-service disposition, budget estimate and alert destination, state recovery test, validated saved Terraform plan, teardown plan and explicit user approval of that plan. Any later plan changes require renewed review. No deployment approval has been given.
+```mermaid
+flowchart LR
+  A[Deployed: protected AWS foundation] --> B[Logging: CloudTrail]
+  A --> C[Paused: Config]
+  A --> D[No enabled CSPM standards]
+  B --> E[Development: encrypted evidence and verification]
+  E -. validity gates .-> F[Future: real ML features and paired predictions]
+  F -. frozen protocol and pilot .-> G[Future: confirmatory trials and R analysis]
+```
 
-## Next implementation phases
-Phase 2: version-pinned Terraform baseline for selected AWS Config types/rules, Security Hub CSPM controls and CloudTrail management telemetry to private encrypted versioned storage. Inspect existing services first; explicit adopt/import versus isolated-create decision. Validate service delivery policies and log integrity. Commit provider lock file after initialization.
-Phase 3: independently authored paired compliant/noncompliant scenarios with assessment citations, resource-state predicates, independent reviewer signoff, trigger and recovery recipes. Freeze ground truth before either monitor runs. No monitor output establishes truth. Required final-design services are EC2, S3, Lambda, EKS, VPC and IAM. Catalog sources and assessment mappings require separate verification. Approximately half of scenarios must be rule-matched and half combinatorial/drift; preserve compliant/noncompliant balance. Hash and freeze the catalog before pilot; independent AWS-security review is required before confirmatory collection.
-Phase 4: shared timestamped telemetry normalization, Isolation Forest with fixed feature schema/seed and training-only initial fitting, bounded adaptation with versioned limits and audit logs, deterministic requirement mapping that returns unknown for missing evidence. Anomaly score alone must never imply noncompliance. Baseline and AI consume matched conditions with measured availability delays.
-Phase 5: instrument pilots; store raw evidence, checksums, collection times, event times, trial IDs, model/feature/mapping versions and failures. Validate latency clocks and missing-output handling. Pilot data cannot become confirmatory data.
-Phase 6: proposal-aligned R simulation power analysis for clustered paired outcomes and censored detection latency; validate type-I error and power across assumed effect sizes/ICC/censoring. Freeze sample size and protocol before held-out runs. Use at least 1,000 simulations per candidate design, target power >=.80 with familywise alpha .05 and Holm across five hypotheses, initially plan binary OR 1.50. Separately verify RMST power at 1,800s with 120s important difference and 15% censoring; vary censoring 5–30% and difference 60–180s. Select the larger design requirement. Use four binomial logit GLMMs and paired clustered RMST in R; report OR/effects, 95% intervals and Holm-adjusted p-values. No sample size is yet established.
+## Next work, in dependency order
 
-## Sources
-https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-setup-prereqs.html
-https://developer.hashicorp.com/terraform/language/backend/s3
-https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/backend.html
+1. The approved development capture has closed: three snapshots verified, no failed or skipped samples, and the acquisition schedule passed. No plaintext evidence was exported and zero research trials ran. For any further approved capture, close and verify the attempt. Retain the independent approval, resolved schedule, ciphertext receipt and encrypted verification report. Report acquisition failures/skips honestly without converting them into research exclusions or classifications. Do not automatically retry a one-shot capture.
+2. Complete prospective evidence validity: observable trigger and attribution, source availability/freshness, shared cutoff and restoration checks. Snapshot timing alone cannot establish event delivery or window-wide state. Further live reads or mutations require their own reviewed scope when outside existing approval.
+3. Expand the independently authored catalog to EC2, S3, Lambda, EKS, VPC and IAM. Verify authoritative sources and assessment mappings, preserve balanced strata/labels, and establish enough defensible overlap groups for disjoint training, validation/adaptation and held-out roles. Freeze and hash before pilot; obtain independent AWS-security review before confirmatory collection.
+4. Prespecify baseline fusion, unknown-compliant metric treatment, clock policy, technical invalidations, feature extraction and adaptation settings. Preserve unknowns and poor outcomes; do not choose policies after seeing confirmatory comparisons.
+5. Implement and lock the R analysis environment and synthetic-data checks. Four binomial logit mixed models retain approach and scenario clustering. The latency comparison uses paired, clustered restricted mean time through 1,800 seconds. Retain all five tests in the Holm family. Missing data and failed fits must remain visible.
+6. Run the proposal's power simulations before confirmatory collection: at least 1,000 datasets per candidate design, target power at least .80, familywise alpha .05, initial binary odds ratio 1.50, separate latency verification at 120 seconds and 15% censoring, with the specified sensitivity ranges. Retain seeds, distributions, design sizes, fit failures and Monte Carlo uncertainty. Select the larger binary/latency requirement; `[N]` remains unresolved until computed.
+7. Review and approve activation and pilot plans with applicable baseline controls, costs, safe injection/restoration, evidence retention and stop/recovery procedures. Validate instruments using pilot evidence that cannot be promoted into confirmatory results. Repeat affected pilots after protocol changes.
+8. Freeze the complete confirmatory protocol and sample size, then request approval for the exact collection plan. Persist both monitor outputs before joining the separately retained expected answers. Prepare the paper from retained observations and documented limitations.
 
-## Scientific readiness gates
-Catalog must be externally sourced, balanced, versioned and hashed before pilot; reviewer signoff is required before confirmatory. Keep trial phase (development/pilot/confirmatory) distinct from learning role (training/validation_adaptation/held_out); no pilot record may become confirmatory evidence. Preserve related-family assignments, batch eligibility and scoring-before-adaptation order. Mapping changes and administrative baseline corrections invalidate affected trials and require documented repeats, never removal for poor performance. Complete the open decisions in proposal-traceability.md before locking a confirmatory protocol.
+## Permissions, state and deployment gates
+
+Use profile `dissertation`, account `653464153304`, region `us-east-2`, and verify the actual non-root identity before AWS work. Native collection uses the existing bounded evidence-reader role and short-lived in-memory sessions. Do not widen access, use root or fall back to the provisioning identity when a reader operation fails. Keep credentials out of chat, source and backend configuration.
+
+Preserve unrelated resources. Use dedicated research names/tags and separate protected S3 state keys and locks for bootstrap, access, baseline, reader access and later research phases. Versioning, private access, encryption, TLS enforcement and retention protect state/evidence. Do not create public resources or weaken protections merely to manufacture a scenario.
+
+Merging software does not authorize an AWS apply, monitoring activation, scenario injection or live research run. Each new reviewed live plan must identify the actual account/role, exact resource/action scope, existing-service disposition, costs and duration, immutable plan/scope hashes, state recovery, evidence handling and teardown/restoration. Changed plans need renewed review. Existing CloudTrail logging continues independently of a local login session.
+
+The $100 budget is an alert threshold, not a spending ceiling or an estimate. Avoid unnecessary compute, broad recording, data events, paid queries and idle EKS resources; cost and approve required study services explicitly. Preserve evidence during shutdown. Notification configuration does not demonstrate email delivery.
+
+Private approvals, saved Terraform plans/state, inventories, raw captures, recipient details and budget email remain outside Git. Public account/user identifiers are authorized; that does not authorize publishing raw security evidence or secrets. See [native capture](native-capture.md), [offline verification](native-verification.md), [AI/ML pipeline](ai-ml-pipeline.md) and [research design contracts](research-software-design.md).
