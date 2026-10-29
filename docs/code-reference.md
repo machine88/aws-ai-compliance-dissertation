@@ -88,3 +88,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Verified sampling receipts
 
 `research/capture_sampling.py` verifies independently pinned encrypted snapshots before projecting one exact non-paginated request into the sampling audit. `audit_snapshot_sampling` takes explicit plan/source/certificate/bucket/request inputs, returns hash-bound timing metadata and legacy blockers, and writes no plaintext. Future non-paginated snapshot responses and errors retain request-start and receipt clocks; paginated pages do not infer starts. See [verified-sampling-receipts.md](verified-sampling-receipts.md).
+
+## Per-fact state frames
+
+`research/state_frames.py` exposes `build_state_frame` for a pinned development snapshot and three exact configuration-record pins. It returns six boolean/unknown facts with separate provenance and acquisition intervals, explicit timing/unknown blockers, and false atomic/ML/formal-readiness flags. It does not supply an aggregate source observation time or change feature extraction. See [state-frames.md](state-frames.md).

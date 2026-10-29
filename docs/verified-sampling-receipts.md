@@ -32,4 +32,6 @@ Old archives without request_started_at remain readable by the existing observat
 
 Timing success applies only to the one selected operation in each snapshot. A snapshot contains sequential heterogeneous requests; one receipt cannot represent an atomic six-fact state frame, baseline determination or entire snapshot duration. Trigger verification, per-fact freshness, independent delivery/completeness, feasible sampling tolerances, persistence, model integration and formal protocol freeze remain separate gates. The existing exact-endpoint feature extractor is unchanged.
 
+The separate [state-frame adapter](state-frames.md) now combines the six configuration facts while retaining all three read intervals. Its acquisition checks do not establish atomic state, source freshness or ML readiness and do not bypass those remaining gates.
+
 This change approves no new local capture or cloud action. Any future prospective run needs its own bounded review and explicit approval. Existing development software-check captures remain separate from pilot and confirmatory evidence.
