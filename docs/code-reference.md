@@ -92,3 +92,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Per-fact state frames
 
 `research/state_frames.py` exposes `build_state_frame` for a pinned development snapshot and three exact configuration-record pins. It returns six boolean/unknown facts with separate provenance and acquisition intervals, explicit timing/unknown blockers, and false atomic/ML/formal-readiness flags. It does not supply an aggregate source observation time or change feature extraction. See [state-frames.md](state-frames.md).
+
+## Adjacent frame comparison
+
+`research/frame_comparison.py` exposes `compare_state_frames` for ordered pinned source archives and explicit acquisition/receipt-gap bounds. It rebuilds frames, rejects reuse/reordering, retains per-fact changed/unchanged/unresolved comparisons and withholds the candidate delta count if any local check fails. The existing extractor/model remain unchanged. See [frame-comparison.md](frame-comparison.md).
