@@ -12,6 +12,7 @@ from pathlib import Path
 from research.archive_ingestion import verify_archive, verify_history_records
 from research.capture_sampling import audit_snapshot_sampling
 from research.catalog import canonical_sha256
+from research.state_frames import build_state_frame, FACT_OPERATIONS
 from research.aws_reader import ACCOUNT, BUCKETS, READER_PREFIX, EncryptedArchive, read_plan
 from research.event_history import history_plan, scoped_events
 from datetime import datetime, timezone
@@ -69,13 +70,14 @@ class ArchiveTests(unittest.TestCase):
         """
         return subprocess.run([self.binary, "cms", "-decrypt", "-binary", "-inform", "DER", "-recip", str(self.certificate), "-inkey", str(self.key)], input=ciphertext, check=True, capture_output=True).stdout
 
-    def snapshot(self, omit=None, complete=True, timing=None):
+    def snapshot(self, omit=None, complete=True, timing=None, record_updates=None):
         """Write a complete synthetic snapshot request ledger and its encrypted terminal chain.
 
         Inputs:
             omit: Optional operation to omit for missing-source tests.
             complete: Explicit completion declaration to place in the terminal marker.
             timing: Optional synthetic request/receipt clocks; None retains the legacy fixture.
+            record_updates: Optional per-operation envelope edits for synthetic provenance tests.
         Outputs:
             None: Writes synthetic ciphertext records, never actual observations.
         """
@@ -91,7 +93,9 @@ class ArchiveTests(unittest.TestCase):
                 body = {"TagSet": [{"Key": "Project", "Value": "aws-ai-compliance-dissertation"}]}
             if operation == "get_bucket_policy":
                 body = {"Policy": json.dumps({"Statement": []})}
-            self.archive.write({"kind": "response", "phase": "development", "request": request, "collector_recorded_at": "2026-01-01T00:31:00Z", **(timing or {}), "response": body})
+            self.archive.write({"kind": "response", "phase": "development", "request": request,
+                                "collector_recorded_at": "2026-01-01T00:31:00Z", **(timing or {}),
+                                "response": body, **(record_updates or {}).get(operation, {})})
         self.archive.write({"kind": "completion", "phase": "development", "complete": complete, "receipts": list(self.archive.receipts)})
 
     def verify(self, **kwargs):
@@ -119,6 +123,121 @@ class ArchiveTests(unittest.TestCase):
         self.assertFalse(result["provider_delivery_verified"])
         self.assertFalse(result["formal_trial_authorized"])
         self.assertFalse(result["normalized"]["ml_ready"])
+
+    def frame_fixture(self, changes=None, legacy=False):
+        """Create a genuine synthetic archive with six facts from three separate read intervals.
+
+        Inputs:
+            changes: Optional per-operation edits to the synthetic response/timing envelope.
+            legacy: When true omit request-start clocks without reconstructing them.
+        Outputs:
+            dict: Keyword arguments for build_state_frame; writes only synthetic ciphertext.
+        """
+        policy = {"Statement": [{"Effect": "Deny", "Principal": "*", "Action": "s3:*",
+                  "Resource": [f"arn:aws:s3:::{BUCKETS[0]}", f"arn:aws:s3:::{BUCKETS[0]}/*"],
+                  "Condition": {"Bool": {"aws:SecureTransport": "false"}}}]}
+        bodies = {"get_public_access_block": {"PublicAccessBlockConfiguration": {
+                     "BlockPublicAcls": True, "IgnorePublicAcls": True,
+                     "BlockPublicPolicy": True, "RestrictPublicBuckets": True}},
+                  "get_bucket_versioning": {"Status": "Enabled"},
+                  "get_bucket_policy": {"Policy": json.dumps(policy)}}
+        updates = {}
+        for operation, offset in [("get_public_access_block", 10), ("get_bucket_versioning", 20), ("get_bucket_policy", 30)]:
+            updates[operation] = {"response": bodies[operation],
+                                  "collector_recorded_at": f"2026-01-01T00:00:{offset+2:02d}Z"}
+            if not legacy:
+                updates[operation]["request_started_at"] = f"2026-01-01T00:00:{offset:02d}Z"
+            updates[operation].update((changes or {}).get(operation, {}))
+        self.snapshot(record_updates=updates)
+        verified = self.verify()
+        pins = {r["request"]["operation"]: canonical_sha256(r) for r in verified["records"]
+                if r.get("request", {}).get("operation") in set(FACT_OPERATIONS.values())}
+        return {"root": self.archive.root, "decrypt_record": self.decrypt, "recipient_sha256": self.pin,
+                "bucket": BUCKETS[0], "archive_sha256": verified["archive_sha256"], "record_pins": pins,
+                "cutoff_at": "2026-01-01T00:00:32Z", "max_acquisition_span_seconds": 22}
+
+    def test_state_frame_retains_per_fact_intervals(self):
+        """Combine six known facts while keeping three independent source intervals visible.
+
+        Inputs:
+            Synthetic archive with sequential 10–12, 20–22 and 30–32 second acquisitions.
+        Outputs:
+            None: Asserts exact inclusive span/cutoff, six facts and closed atomic/ML gates.
+        """
+        arguments = self.frame_fixture()
+        result = build_state_frame(**arguments)
+        self.assertTrue(result["all_facts_known"])
+        self.assertTrue(result["frame_checks_passed"])
+        self.assertEqual(len(result["facts"]), 6)
+        self.assertTrue(all(result["facts"].values()))
+        self.assertEqual(result["acquisition_span_seconds"], 22)
+        self.assertNotEqual(result["fact_provenance"]["tls_deny_present"]["request_started_at"],
+                            result["fact_provenance"]["block_public_acls"]["request_started_at"])
+        for record in result["fact_provenance"].values():
+            self.assertIsNone(record["source_observed_at"])
+        for key in ["atomic_snapshot_established", "source_freshness_verified", "ml_ready",
+                    "formal_trial_authorized", "provider_delivery_verified", "sender_authenticated"]:
+            self.assertFalse(result[key])
+        self.assertNotIn("observed_at", result)
+        self.assertNotIn('"response"', json.dumps(result))
+
+    def test_frame_limits_and_unknown_facts_stay_visible(self):
+        """Retain unknown flags and span/cutoff failures instead of imputing compliant values.
+
+        Inputs:
+            Partial synthetic public-access configuration and stricter caller timing limits.
+        Outputs:
+            None: Asserts unknown values, explicit blockers and changed binding fingerprint.
+        """
+        arguments = self.frame_fixture(changes={"get_public_access_block": {"response": {
+            "PublicAccessBlockConfiguration": {"BlockPublicAcls": True}}}})
+        original = build_state_frame(**arguments)
+        arguments["max_acquisition_span_seconds"] = 21
+        arguments["cutoff_at"] = "2026-01-01T00:00:31Z"
+        result = build_state_frame(**arguments)
+        self.assertIsNone(result["facts"]["ignore_public_acls"])
+        self.assertFalse(result["all_facts_known"])
+        self.assertIn("unknown_fact:ignore_public_acls", result["blockers"])
+        self.assertIn("acquisition_span_exceeds_bound", result["blockers"])
+        self.assertIn("received_after_cutoff:get_bucket_policy", result["blockers"])
+        self.assertNotEqual(original["binding_sha256"], result["binding_sha256"])
+
+    def test_legacy_frame_has_no_invented_acquisition_bounds(self):
+        """Keep known facts from an older archive but leave aggregate timing unavailable.
+
+        Inputs:
+            Synthetic legacy snapshot with receipt times and no request-start clocks.
+        Outputs:
+            None: Asserts facts remain known while timing and ML readiness remain blocked.
+        """
+        result = build_state_frame(**self.frame_fixture(legacy=True))
+        self.assertTrue(result["all_facts_known"])
+        self.assertFalse(result["frame_checks_passed"])
+        self.assertIsNone(result["acquisition_started_at"])
+        self.assertIsNone(result["acquisition_recorded_at"])
+        self.assertIsNone(result["acquisition_span_seconds"])
+        self.assertEqual(len(result["blockers"]), 3)
+
+    def test_frame_pins_and_serial_clock_order_fail_closed(self):
+        """Refuse substituted bindings, extra label fields and impossible serial timing.
+
+        Inputs:
+            Independent argument edits and an encrypted overlapping-request fixture.
+        Outputs:
+            None: Asserts malformed bindings/clocks fail before producing a frame.
+        """
+        arguments = self.frame_fixture()
+        for changes in [{"archive_sha256": "0"*64}, {"max_acquisition_span_seconds": True},
+                        {"cutoff_at": "2026-01-01T00:00:32"},
+                        {"record_pins": {**arguments["record_pins"], "expected": "compliant"}},
+                        {"record_pins": {**arguments["record_pins"], "get_bucket_policy": "0"*64}}]:
+            with self.assertRaises(ValueError):
+                build_state_frame(**{**arguments, **changes})
+        self.setUp()
+        overlap = self.frame_fixture(changes={"get_bucket_versioning": {
+            "request_started_at": "2026-01-01T00:00:11Z"}})
+        with self.assertRaises(ValueError):
+            build_state_frame(**overlap)
 
     def sampling_fixture(self, legacy=False):
         """Encrypt two independently timed synthetic snapshots and bind one S3 request.
