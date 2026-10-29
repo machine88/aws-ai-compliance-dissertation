@@ -96,3 +96,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Adjacent frame comparison
 
 `research/frame_comparison.py` exposes `compare_state_frames` for ordered pinned source archives and explicit acquisition/receipt-gap bounds. It rebuilds frames, rejects reuse/reordering, retains per-fact changed/unchanged/unresolved comparisons and withholds the candidate delta count if any local check fails. The existing extractor/model remain unchanged. See [frame-comparison.md](frame-comparison.md).
+
+## Verified feature-component bundle
+
+`research/feature_bundle.py` exposes `build_feature_bundle` for pinned history/snapshot sources and a source-locked development window. It retains seven candidate components, timing/readiness blockers and transitive source hashes, with no released model vector. `research/event_features.py` shares `count_event_inputs` between this audit and the unchanged strict extractor. See [feature-bundle.md](feature-bundle.md).

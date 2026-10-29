@@ -49,4 +49,6 @@ Intermediate observed transitions count, including change followed by restoratio
 
 ## What remains
 
+The shared `count_event_inputs` helper now serves this original extractor and the separate [verified feature-component bundle](feature-bundle.md). The original extractor's endpoint and completeness behavior is unchanged. The bundle retains retrospective timing limitations and does not release model inputs.
+
 Separate bounded event-history collection, encrypted archive verification and Keychain-backed decryption are now implemented; see the event-history and archive-ingestion documents. The approved reader can query regional management-event history, with resource filtering performed by the application. This does not establish provider delivery completeness or integrate those captures into model inputs. CloudTrail logging is now approved and on; Config recording and CSPM standards remain off. Independent delivery/completeness evidence, feasible sampling/trigger timing and pairing these source hashes with retained controller/model artifacts remain pending. See the [prospective instrument review](prospective-instrument-review.md). Pilot and confirmatory paths remain disabled.

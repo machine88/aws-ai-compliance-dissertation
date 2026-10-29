@@ -44,8 +44,44 @@ def extract_event_features(envelopes, snapshots, coverage):
             raise ValueError("Explicit boolean completeness declarations required")
         if not coverage[key]:
             blockers.append(key + "_false")
+    summary = count_event_inputs(envelopes, coverage["bucket"], coverage["window_start"],
+                                 coverage["window_end"], coverage["closed_at"])
+    features = dict(summary["counts"])
+    blockers.extend(summary["blockers"])
+    delta, snapshot_blockers = snapshot_delta_count(snapshots, start, end)
+    features["configuration_delta_count"] = delta
+    blockers.extend(snapshot_blockers)
+    # An incomplete batch emits no numeric vector, preventing zero-imputation downstream.
+    return {"extraction_version": EXTRACTION_VERSION, "phase": "development", "ml_ready": not blockers,
+            "features": features if not blockers else None, "blockers": sorted(set(blockers)),
+            "eligible_attempts": summary["eligible_attempts"], "failed_attempts": summary["failed_attempts"], "ignored_counts": summary["ignored_counts"],
+            "input_sha256": canonical_sha256({"events": envelopes, "snapshots": snapshots, "coverage": coverage}),
+            "source_manifest_sha256": coverage["source_manifest_sha256"], "coverage_is_declaration_not_attestation": True,
+            "independent_ground_truth_used": False}
+
+
+def count_event_inputs(envelopes, bucket, window_start, window_end, closed_at):
+    """Retain six diagnostic event-count inputs without claiming complete telemetry.
+
+    Inputs:
+        envelopes: Decoded event/collector_recorded_at pairs from a source-verified caller.
+        bucket: Independently selected reviewed research bucket.
+        window_start: Explicit timezone-aware source-window start.
+        window_end: Inclusive receipt/source cutoff exactly 1,800 seconds after start.
+        closed_at: Administrative closure at or after cutoff, retaining late evidence.
+    Outputs:
+        dict: Six diagnostic counts, event blockers, attempt counts and ignored reasons.
+            Counts are not a complete feature vector or proof of event delivery; no IO.
+            Invalid/conflicting event identities or receipt clocks raise ValueError.
+    """
+    if bucket not in BUCKETS or not isinstance(envelopes, list):
+        raise ValueError("Reviewed bucket and event list required")
+    start, end, closed = [utc_timestamp(value) for value in (window_start, window_end, closed_at)]
+    if (end-start).total_seconds() != WINDOW_SECONDS or closed < end:
+        raise ValueError("Closed 1800-second event window required")
+    blockers = []
     features = {"mutation_count": 0, "policy_change_count": 0, "public_access_change_count": 0,
-                "versioning_change_count": 0, "principal_count": 0, "configuration_delta_count": 0,
+                "versioning_change_count": 0, "principal_count": 0,
                 "failed_request_fraction": 0.0}
     principals, seen, ignored = set(), {}, {}
     attempts, failures = 0, 0
@@ -65,7 +101,7 @@ def extract_event_features(envelopes, snapshots, coverage):
             if not isinstance(parameters, dict) or not isinstance(parameters.get("bucketName"), str):
                 blockers.append("unattributable_bucket_event")
                 reason = "missing_bucket_identity"
-            elif parameters["bucketName"] != coverage["bucket"]:
+            elif parameters["bucketName"] != bucket:
                 reason = "other_bucket"
         if reason:
             ignored[reason] = ignored.get(reason, 0) + 1
@@ -123,16 +159,8 @@ def extract_event_features(envelopes, snapshots, coverage):
             features[MUTATIONS[event["eventName"]]] += 1
     features["principal_count"] = len(principals)
     features["failed_request_fraction"] = failures / attempts if attempts else 0.0
-    delta, snapshot_blockers = snapshot_delta_count(snapshots, start, end)
-    features["configuration_delta_count"] = delta
-    blockers.extend(snapshot_blockers)
-    # An incomplete batch emits no numeric vector, preventing zero-imputation downstream.
-    return {"extraction_version": EXTRACTION_VERSION, "phase": "development", "ml_ready": not blockers,
-            "features": features if not blockers else None, "blockers": sorted(set(blockers)),
-            "eligible_attempts": attempts, "failed_attempts": failures, "ignored_counts": ignored,
-            "input_sha256": canonical_sha256({"events": envelopes, "snapshots": snapshots, "coverage": coverage}),
-            "source_manifest_sha256": coverage["source_manifest_sha256"], "coverage_is_declaration_not_attestation": True,
-            "independent_ground_truth_used": False}
+    return {"counts": features, "blockers": sorted(set(blockers)),
+            "eligible_attempts": attempts, "failed_attempts": failures, "ignored_counts": ignored}
 
 
 def snapshot_delta_count(snapshots, start, end):
