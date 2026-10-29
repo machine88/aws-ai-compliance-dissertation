@@ -56,6 +56,9 @@ def main(arguments=None, session_factory=boto3.Session):
         for request in plan:
             operation = request["operation"]
             client = clients[request["service"]]
+            # One non-paginated SDK invocation includes its internal retries, not encryption time.
+            # Paginated requests retain page receipts only; no per-page start is inferred.
+            timing = {} if request["paginated"] else {"request_started_at": datetime.now(timezone.utc)}
             try:
                 # SDK pagination retains every returned page up to the explicit capture bound.
                 if request["paginated"]:
@@ -65,7 +68,7 @@ def main(arguments=None, session_factory=boto3.Session):
                 query_pages, capped = 0, False
                 for response in pages:
                     query_pages += 1
-                    archive.write({"kind": "response", "phase": "development", "request": request, "collector_recorded_at": datetime.now(timezone.utc), "response": response})
+                    archive.write({"kind": "response", "phase": "development", "request": request, **timing, "collector_recorded_at": datetime.now(timezone.utc), "response": response})
                     check_scope(operation, response)
                     # Bound empty continuation pages as well as returned item counts.
                     if request["paginated"] and query_pages >= args.max_pages and response.get("NextToken"):
@@ -78,7 +81,7 @@ def main(arguments=None, session_factory=boto3.Session):
             except ClientError as error:
                 code = error.response.get("Error", {}).get("Code", "Unknown")
                 absent = code in ABSENCE_CODES.get(operation, set())
-                archive.write({"kind": "absent" if absent else "instrumentation_error", "request": request, "code": code})
+                archive.write({"kind": "absent" if absent else "instrumentation_error", "request": request, **timing, "collector_recorded_at": datetime.now(timezone.utc), "code": code})
                 complete = complete and absent
                 # Guard errors stop resource reads instead of turning an unauthorized scope into data.
                 if operation in {"get_bucket_location", "get_bucket_tagging"}:

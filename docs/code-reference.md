@@ -84,3 +84,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Development sampling audit
 
 `research/sampling.py` validates a declared schedule against source-bound request receipts without AWS calls. `audit_sampling` retains acquisition clocks and blockers; timing success never enables ML or formal trials. `nonnegative_seconds` rejects implicit/invalid timing bounds. See [sampling-contract.md](sampling-contract.md) for exact schema meanings and the unchanged feature-integration boundary. Tests use synthetic clocks only.
+
+## Verified sampling receipts
+
+`research/capture_sampling.py` verifies independently pinned encrypted snapshots before projecting one exact non-paginated request into the sampling audit. `audit_snapshot_sampling` takes explicit plan/source/certificate/bucket/request inputs, returns hash-bound timing metadata and legacy blockers, and writes no plaintext. Future non-paginated snapshot responses and errors retain request-start and receipt clocks; paginated pages do not infer starts. See [verified-sampling-receipts.md](verified-sampling-receipts.md).

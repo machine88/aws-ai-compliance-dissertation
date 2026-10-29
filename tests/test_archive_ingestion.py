@@ -10,6 +10,8 @@ import unittest
 from unittest.mock import Mock
 from pathlib import Path
 from research.archive_ingestion import verify_archive, verify_history_records
+from research.capture_sampling import audit_snapshot_sampling
+from research.catalog import canonical_sha256
 from research.aws_reader import ACCOUNT, BUCKETS, READER_PREFIX, EncryptedArchive, read_plan
 from research.event_history import history_plan, scoped_events
 from datetime import datetime, timezone
@@ -67,12 +69,13 @@ class ArchiveTests(unittest.TestCase):
         """
         return subprocess.run([self.binary, "cms", "-decrypt", "-binary", "-inform", "DER", "-recip", str(self.certificate), "-inkey", str(self.key)], input=ciphertext, check=True, capture_output=True).stdout
 
-    def snapshot(self, omit=None, complete=True):
+    def snapshot(self, omit=None, complete=True, timing=None):
         """Write a complete synthetic snapshot request ledger and its encrypted terminal chain.
 
         Inputs:
             omit: Optional operation to omit for missing-source tests.
             complete: Explicit completion declaration to place in the terminal marker.
+            timing: Optional synthetic request/receipt clocks; None retains the legacy fixture.
         Outputs:
             None: Writes synthetic ciphertext records, never actual observations.
         """
@@ -88,7 +91,7 @@ class ArchiveTests(unittest.TestCase):
                 body = {"TagSet": [{"Key": "Project", "Value": "aws-ai-compliance-dissertation"}]}
             if operation == "get_bucket_policy":
                 body = {"Policy": json.dumps({"Statement": []})}
-            self.archive.write({"kind": "response", "phase": "development", "request": request, "collector_recorded_at": "2026-01-01T00:31:00Z", "response": body})
+            self.archive.write({"kind": "response", "phase": "development", "request": request, "collector_recorded_at": "2026-01-01T00:31:00Z", **(timing or {}), "response": body})
         self.archive.write({"kind": "completion", "phase": "development", "complete": complete, "receipts": list(self.archive.receipts)})
 
     def verify(self, **kwargs):
@@ -116,6 +119,92 @@ class ArchiveTests(unittest.TestCase):
         self.assertFalse(result["provider_delivery_verified"])
         self.assertFalse(result["formal_trial_authorized"])
         self.assertFalse(result["normalized"]["ml_ready"])
+
+    def sampling_fixture(self, legacy=False):
+        """Encrypt two independently timed synthetic snapshots and bind one S3 request.
+
+        Inputs:
+            legacy: When true omit request clocks from the anchor to model an old archive.
+        Outputs:
+            tuple: Synthetic plan, source bindings and selected request hash; writes test ciphertext.
+        """
+        plan = {"phase": "development", "trigger_at": "2026-01-01T00:01:00Z",
+                "closed_at": "2026-01-01T00:32:00Z", "max_start_lateness_seconds": 1,
+                "max_response_seconds": 5, "max_anchor_age_seconds": 30,
+                "samples": [{"sample_id": "anchor", "offset_seconds": -20},
+                            {"sample_id": "window", "offset_seconds": 60}]}
+        sources = []
+        for sample_id, started, recorded in [("anchor", "00:00:40Z", "00:00:42Z"),
+                                             ("window", "00:02:00Z", "00:02:02Z")]:
+            if sources:
+                self.setUp()
+            timing = {"collector_recorded_at": "2026-01-01T"+recorded}
+            if not legacy or sample_id != "anchor":
+                timing["request_started_at"] = "2026-01-01T"+started
+            self.snapshot(timing=timing)
+            verified = self.verify()
+            record = next(r for r in verified["records"] if r.get("request", {}).get("operation") == "get_public_access_block")
+            sources.append({"sample_id": sample_id, "root": self.archive.root,
+                            "archive_sha256": verified["archive_sha256"], "record_sha256": canonical_sha256(record)})
+        return plan, sources, canonical_sha256(record["request"])
+
+    def test_verified_archives_feed_sampling_without_raw_exports(self):
+        """Use genuine CMS chains to verify selected record clocks and output minimization.
+
+        Inputs:
+            Two independent encrypted synthetic snapshots and explicit external source bindings.
+        Outputs:
+            None: Asserts timing success, preserved clocks and false readiness/authentication flags.
+        """
+        plan, sources, request_hash = self.sampling_fixture()
+        result = audit_snapshot_sampling(plan, sources, self.decrypt, self.pin, BUCKETS[0], request_hash)
+        self.assertTrue(result["sampling"]["acquisition_schedule_met"])
+        self.assertEqual(result["sampling"]["samples"][0]["receipt"]["recorded_at"], "2026-01-01T00:00:42Z")
+        self.assertIsNone(result["sampling"]["samples"][0]["receipt"]["source_observed_at"])
+        encoded = json.dumps(result)
+        self.assertNotIn('"root"', encoded)
+        self.assertNotIn('"response"', encoded)
+        for key in ["ml_ready", "formal_trial_authorized", "provider_delivery_verified", "sender_authenticated"]:
+            self.assertFalse(result[key])
+
+    def test_legacy_capture_clocks_are_not_invented(self):
+        """Keep an old valid archive usable for observation but blocked for request timing.
+
+        Inputs:
+            A valid encrypted anchor snapshot without request_started_at.
+        Outputs:
+            None: Asserts explicit timing blocker and missing sampling receipt, not guessed clocks.
+        """
+        plan, sources, request_hash = self.sampling_fixture(legacy=True)
+        result = audit_snapshot_sampling(plan, sources, self.decrypt, self.pin, BUCKETS[0], request_hash)
+        self.assertEqual(result["capture_timing_blockers"], [{"sample_id": "anchor", "reason": "capture_request_timing_unavailable"}])
+        self.assertIsNone(result["sampling"]["samples"][0]["receipt"])
+        self.assertFalse(result["sampling"]["acquisition_schedule_met"])
+
+    def test_source_binding_changes_and_reuse_fail(self):
+        """Refuse substituted records, archives, scopes, reused receipts and clock overrides.
+
+        Inputs:
+            Separate mutations of valid synthetic source bindings and selected request hash.
+        Outputs:
+            None: Asserts fail-closed validation for every substituted binding.
+        """
+        plan, sources, request_hash = self.sampling_fixture()
+        for field, value in [("archive_sha256", "0"*64), ("record_sha256", "0"*64),
+                             ("sample_id", "unscheduled"), ("request_started_at", "2026-01-01T00:00:40Z")]:
+            changed = copy.deepcopy(sources)
+            changed[0][field] = value
+            with self.assertRaises(ValueError):
+                audit_snapshot_sampling(plan, changed, self.decrypt, self.pin, BUCKETS[0], request_hash)
+        reused = [sources[0], {**sources[0], "sample_id": "window"}]
+        with self.assertRaises(ValueError):
+            audit_snapshot_sampling(plan, reused, self.decrypt, self.pin, BUCKETS[0], request_hash)
+        wrong_request = canonical_sha256(read_plan(BUCKETS[0])[0])
+        with self.assertRaises(ValueError):
+            audit_snapshot_sampling(plan, sources, self.decrypt, self.pin, BUCKETS[0], wrong_request)
+        paginated = next(r for r in read_plan(BUCKETS[0]) if r["paginated"])
+        with self.assertRaises(ValueError):
+            audit_snapshot_sampling(plan, sources, self.decrypt, self.pin, BUCKETS[0], canonical_sha256(paginated))
 
     def test_modified_ciphertext_is_rejected(self):
         """Reject encrypted content changed after capture.
