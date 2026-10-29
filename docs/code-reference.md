@@ -81,3 +81,6 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## CloudTrail-only permission proposal
 
 `infra/access/deployment-boundary.json` proposes one additional named-trail StartLogging permission in its existing regional statement; the generated identity policy remains unchanged. The access regression test checks named-trail/region scope and continued absence of Config start. `trail-only-permission-proposal.md` explains the two-root saved-plan gate, unchanged telemetry selectors, persistent logging and separate capture/research permissions. Raw live reviews and assumed-volume cost calculations remain private.
+## Development sampling audit
+
+`research/sampling.py` validates a declared schedule against source-bound request receipts without AWS calls. `audit_sampling` retains acquisition clocks and blockers; timing success never enables ML or formal trials. `nonnegative_seconds` rejects implicit/invalid timing bounds. See [sampling-contract.md](sampling-contract.md) for exact schema meanings and the unchanged feature-integration boundary. Tests use synthetic clocks only.
