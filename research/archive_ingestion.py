@@ -64,23 +64,20 @@ def private_bytes(directory_fd, name, remaining):
         os.close(descriptor)
 
 
-def verify_archive(root, decrypt_record, recipient_sha256, bucket, max_records=10000, max_bytes=67108864):
-    """Verify ciphertext receipts and decoded scope without accessing private keys directly.
+def read_archive_records(root, decrypt_record, recipient_sha256, max_records=10000, max_bytes=67108864):
+    """Read bounded private CMS records without interpreting a source-specific completion schema.
 
     Inputs:
-        root: Existing POSIX capture directory owned by the current user, with private permissions.
-        decrypt_record: Trusted callback accepting ciphertext bytes and returning authenticated plaintext bytes.
-        recipient_sha256: Externally pinned SHA-256 of the collector's normalized public PEM certificate.
-        bucket: Reviewed bucket expected independently of the archive's own declarations.
-        max_records: Positive upper limit on encrypted records admitted in memory.
-        max_bytes: Positive cumulative byte limit for certificate, ciphertext and decrypted plaintext.
+        root: Owned private POSIX directory containing only certificate and contiguous CMS records.
+        decrypt_record: Trusted authenticated decryption callback accepting ciphertext bytes.
+        recipient_sha256: Independently trusted normalized public certificate fingerprint.
+        max_records: Positive maximum encrypted-record count.
+        max_bytes: Positive cumulative certificate/ciphertext/plaintext byte budget.
     Outputs:
-        dict: Verified in-memory records, archive fingerprint and normalized snapshot/history metadata.
-            Writes no plaintext and makes no cloud call. Consistency is not sender authentication,
-            provider completeness, trigger attestation, ML readiness or formal-trial authorization.
+        tuple: In-memory decoded development records and ordered ciphertext receipts; no plaintext writes.
+            This shared reader does not authenticate authors or verify source/journal completion.
     """
     require_sha256(recipient_sha256)
-    read_plan(bucket)
     if type(max_records) is not int or max_records < 1 or type(max_bytes) is not int or max_bytes < 1:
         raise ValueError("Positive ingestion limits required")
     directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
@@ -116,6 +113,26 @@ def verify_archive(root, decrypt_record, recipient_sha256, bucket, max_records=1
             raise ValueError("Capture directory changed during ingestion")
     finally:
         os.close(directory)
+    return records, receipts
+
+
+def verify_archive(root, decrypt_record, recipient_sha256, bucket, max_records=10000, max_bytes=67108864):
+    """Verify ciphertext receipts and decoded scope without accessing private keys directly.
+
+    Inputs:
+        root: Existing POSIX capture directory owned by the current user, with private permissions.
+        decrypt_record: Trusted callback accepting ciphertext bytes and returning authenticated plaintext bytes.
+        recipient_sha256: Externally pinned SHA-256 of the collector's normalized public PEM certificate.
+        bucket: Reviewed bucket expected independently of the archive's own declarations.
+        max_records: Positive upper limit on encrypted records admitted in memory.
+        max_bytes: Positive cumulative byte limit for certificate, ciphertext and decrypted plaintext.
+    Outputs:
+        dict: Verified in-memory records, archive fingerprint and normalized snapshot/history metadata.
+            Writes no plaintext and makes no cloud call. Consistency is not sender authentication,
+            provider completeness, trigger attestation, ML readiness or formal-trial authorization.
+    """
+    read_plan(bucket)
+    records, receipts = read_archive_records(root, decrypt_record, recipient_sha256, max_records, max_bytes)
     # The final encrypted completion record must name every predecessor, in order and by hash.
     terminal = records[-1]
     if terminal.get("phase") != "development":

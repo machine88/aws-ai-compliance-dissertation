@@ -1,5 +1,6 @@
 """Synthetic encrypted native-wrapper tests; workers/SDK calls are mocked except timeout probes."""
 import hashlib
+import copy
 import io
 import json
 import os
@@ -11,7 +12,8 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
-from research.archive_ingestion import verify_archive
+from research.archive_ingestion import verify_archive, read_archive_records
+from research.native_verification import verify_native_run, verify_journal_sequence
 from research.aws_reader import ACCOUNT, BUCKETS, READER_PREFIX, EncryptedArchive, read_plan
 from research.catalog import canonical_sha256
 from research.native_capture import (NativeSnapshotCallbacks, native_scope, validate_native_scope,
@@ -97,9 +99,13 @@ class NativeTests(unittest.TestCase):
                 body = {"TagSet": [{"Key": "Project", "Value": "aws-ai-compliance-dissertation"}]}
             if operation == "get_bucket_policy":
                 body = {"Policy": '{"Statement": []}'}
+            observed = (datetime(2026, 1, 1, tzinfo=timezone.utc)+timedelta(seconds=getattr(self, "capture_clock", [60])[0])).isoformat()
+            timing = {} if request["paginated"] else {"request_started_at": observed}
             archive.write({"kind": "response", "phase": "development", "request": request,
-                           "collector_recorded_at": "2026-01-01T00:01:00Z", "response": body})
+                           "collector_recorded_at": observed, **timing, "response": body})
         archive.write({"kind": "completion", "phase": "development", "complete": True, "receipts": list(archive.receipts)})
+        if hasattr(self, "capture_clock"):
+            self.capture_clock[0] += 2
         return "success"
 
     def test_native_snapshot_and_journal_remain_encrypted_and_bound(self):
@@ -130,16 +136,17 @@ class NativeTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             NativeSnapshotCallbacks(self.scope, self.pin, self.cert)
 
-    def test_native_runner_composes_scope_journal_and_virtual_schedule(self):
-        """Rehearse the native composition with encrypted fake snapshots and virtual waits.
+    def native_run_fixture(self, worker_effect=None):
+        """Prepare a closed encrypted native capsule using synthetic sources and virtual time.
 
         Inputs:
-            Exact synthetic plan/scope pins, a fake worker and virtual UTC/monotonic clocks.
+            worker_effect: Optional mocked worker behavior; None writes synthetic encrypted snapshots.
         Outputs:
-            None: Asserts closed report, preserved gates, encrypted final report and no real AWS calls.
+            tuple: Exact plan, execution result and worker count; writes test ciphertext only.
         """
         origin = datetime(2026, 1, 1, tzinfo=timezone.utc)
         elapsed = [-20.0]
+        self.capture_clock = elapsed
         def wall():
             """Return synthetic UTC time for this composition rehearsal.
 
@@ -178,9 +185,21 @@ class NativeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             run_native_capture(wrong, canonical_sha256(wrong), self.scope, self.pin, self.cert, wall, mono, sleep)
         self.assertFalse(Path(self.scope["output_root"]).exists())
-        with patch("research.native_capture.bounded_worker", side_effect=self.fake_worker) as worker:
+        effect = self.fake_worker if worker_effect is None else worker_effect
+        with patch("research.native_capture.bounded_worker", side_effect=effect) as worker:
             result = run_native_capture(plan, canonical_sha256(plan), self.scope, self.pin, self.cert, wall, mono, sleep)
-        self.assertEqual(worker.call_count, 2)
+        return plan, result, worker.call_count
+
+    def test_native_runner_composes_scope_journal_and_virtual_schedule(self):
+        """Rehearse native composition without real AWS calls or real scheduling waits.
+
+        Inputs:
+            Synthetic encrypted native capsule from native_run_fixture.
+        Outputs:
+            None: Asserts closed report, preserved gates and encrypted native final receipt.
+        """
+        plan, result, count = self.native_run_fixture()
+        self.assertEqual(count, 2)
         self.assertEqual(result["report"]["actual_closed_at"], plan["sampling"]["closed_at"])
         self.assertFalse(result["report"]["trigger_verified"])
         self.assertFalse(result["report"]["ml_ready"])
@@ -189,6 +208,92 @@ class NativeTests(unittest.TestCase):
         final = records[-1].read_bytes()
         self.assertEqual(hashlib.sha256(final).hexdigest(), result["native_report_receipt"])
         self.assertEqual(json.loads(self.decrypt(final))["kind"], "native_run_report")
+
+    def test_native_journal_and_successful_sources_verify_without_readiness_promotion(self):
+        """Verify the full encrypted journal and each source against independent fixture pins.
+
+        Inputs:
+            Exact synthetic plan/scope/final-receipt bindings and a genuine encrypted capsule.
+        Outputs:
+            None: Asserts two source verifications and false scientific/ML/authentication gates.
+        """
+        plan, result, _ = self.native_run_fixture()
+        verified = verify_native_run(self.scope["output_root"], self.decrypt, self.scope["recipient_sha256"],
+                                     result["native_report_receipt"], plan, self.scope)
+        self.assertEqual(len(verified["verified_snapshots"]), 2)
+        self.assertTrue(verified["sampling_audit"]["acquisition_schedule_met"])
+        self.assertEqual(verified["failed_samples"], [])
+        for key in ["sender_authenticated", "trigger_verified", "provider_delivery_verified", "source_freshness_verified", "ml_ready", "formal_trial_authorized"]:
+            self.assertFalse(verified[key])
+        self.assertNotIn('"response"', json.dumps(verified))
+
+    def test_native_journal_wrong_pin_missing_completion_and_source_tampering_fail(self):
+        """Refuse a substituted final receipt, changed source ciphertext and absent final report.
+
+        Inputs:
+            Independent mutations of a valid encrypted synthetic capsule.
+        Outputs:
+            None: Asserts no verified capsule is returned for altered/missing evidence.
+        """
+        plan, result, _ = self.native_run_fixture()
+        arguments = (self.scope["output_root"], self.decrypt, self.scope["recipient_sha256"])
+        with self.assertRaises(ValueError):
+            verify_native_run(*arguments, "0"*64, plan, self.scope)
+        source = Path(self.scope["output_root"]) / "samples" / "middle" / "record-00001.cms"
+        content = bytearray(source.read_bytes())
+        content[-5] ^= 1
+        source.write_bytes(content)
+        with self.assertRaises((ValueError, subprocess.SubprocessError)):
+            verify_native_run(*arguments, result["native_report_receipt"], plan, self.scope)
+        final = sorted((Path(self.scope["output_root"]) / "journal").glob("record-*.cms"))[-1]
+        final.unlink()
+        with self.assertRaises(ValueError):
+            verify_native_run(*arguments, result["native_report_receipt"], plan, self.scope)
+
+    def test_native_journal_recomputes_events_and_rejects_labels_or_clock_edits(self):
+        """Independently replay decoded journal rules rather than trusting report assertions.
+
+        Inputs:
+            Separate in-memory changes to synthetic sample identity, drift and extra label fields.
+        Outputs:
+            None: Asserts ordered-event/schema/clock validation fails for every changed ledger.
+        """
+        plan, result, _ = self.native_run_fixture()
+        records, receipts = read_archive_records(Path(self.scope["output_root"]) / "journal", self.decrypt, self.scope["recipient_sha256"])
+        for key, value in [("sample_id", "wrong-sample"), ("monotonic_seconds", -100), ("expected", "compliant")]:
+            changed = copy.deepcopy(records)
+            changed[2][key] = value
+            with self.assertRaises(ValueError):
+                verify_journal_sequence(changed, receipts, plan, result["report"])
+
+    def test_native_journal_preserves_failed_samples_without_admitting_partial_sources(self):
+        """Verify closed error runs while retaining failures and withholding invalid sources.
+
+        Inputs:
+            Synthetic timeout for the middle sample and one successful encrypted anchor.
+        Outputs:
+            None: Asserts a failed sampling audit, one verified source and no readiness promotion.
+        """
+        def timeout_middle(command, descriptor, timeout_seconds):
+            """Return a fake timeout without starting any SDK process.
+
+            Inputs:
+                command: Pinned worker argv used by the synthetic wrapper.
+                descriptor: Sample metadata selecting the failure case.
+                timeout_seconds: Reviewed worker bound passed to the fake worker otherwise.
+            Outputs:
+                str: timeout for middle, or synthetic encrypted snapshot success for anchor.
+            """
+            if descriptor["sample_id"] == "middle":
+                return "timeout"
+            return self.fake_worker(command, descriptor, timeout_seconds)
+        plan, result, _ = self.native_run_fixture(worker_effect=timeout_middle)
+        verified = verify_native_run(self.scope["output_root"], self.decrypt, self.scope["recipient_sha256"],
+                                     result["native_report_receipt"], plan, self.scope)
+        self.assertEqual(verified["failed_samples"], ["middle"])
+        self.assertEqual(len(verified["verified_snapshots"]), 1)
+        self.assertFalse(verified["sampling_audit"]["acquisition_schedule_met"])
+        self.assertFalse(verified["ml_ready"])
 
     def test_timeout_and_fatal_worker_outcomes_do_not_become_success(self):
         """Preserve encrypted error evidence and stop fatal source/identity failures.
