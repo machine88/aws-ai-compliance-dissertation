@@ -100,3 +100,7 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Verified feature-component bundle
 
 `research/feature_bundle.py` exposes `build_feature_bundle` for pinned history/snapshot sources and a source-locked development window. It retains seven candidate components, timing/readiness blockers and transitive source hashes, with no released model vector. `research/event_features.py` shares `count_event_inputs` between this audit and the unchanged strict extractor. See [feature-bundle.md](feature-bundle.md).
+
+## Development prospective runner
+
+`research/prospective_runner.py` provides `DevelopmentSamplingRunner` with explicit plan/scope pins, trusted silent collector/journal callbacks and injectable clocks/sleep. It preserves target deadlines, records missed/late/error invocations, aborts on clock/persistence faults and returns only after administrative closure. It has no native AWS integration or verified-trigger claim. See [prospective-runner.md](prospective-runner.md).

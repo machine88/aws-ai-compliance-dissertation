@@ -33,6 +33,8 @@ The current feature extractor requires state frames at both exact window endpoin
 
 The separate [development sampling audit](sampling-contract.md) now retains scheduled targets, request starts, receipts, optional source clocks and late/missing/error blockers. It distinguishes a pre-trigger anchor from in-window acquisitions without interpreting facts or replacing the extractor. Clock uncertainty and failed requests must be retained rather than assigned invented observation times. Before any replacement extractor is used, specify admissible anchor age, scheduling tolerance, closure/grace behavior and treatment of incomplete frames; test their boundary cases offline and review them before capture. These numerical choices are unresolved, not selected from observed comparative outcomes.
 
+The [development callback runner](prospective-runner.md) now executes those targets under virtual-clock tests, preserving missed targets and the fixed cutoff. It requires trusted collector/journal/clock callbacks and approved plan/scope fingerprints; it has no native live adapter or verified trigger. Invocation clocks are not substituted for individual AWS request clocks. No new capture is authorized by this scheduling implementation.
+
 For the existing proposed collector-recorded primary clock, late evidence stays auditable but cannot retroactively earn an in-window detection. A later administrative closure may retain late delivery; it must not extend detection eligibility. Retrospective LookupEvents pagination is not evidence of complete provider delivery. Absence of a violation finding is not proof of compliance. Preserve these distinctions when defining a feasible sampling contract.
 
 ## Remaining research gates
