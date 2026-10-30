@@ -1,6 +1,6 @@
 # Dedicated sandbox access proposal
 
-Status: the reviewed six-create IAM saved plan was explicitly approved, applied and independently verified on October 30, 2026 (America/Chicago). A follow-up access-root plan reported no changes. This stage created IAM access only. It does not create the S3 sandbox, change versioning, activate monitoring, run a capture, or authorize a research trial.
+Status: the reviewed six-create IAM saved plan was explicitly approved, applied and independently verified on October 30, 2026 (America/Chicago). A follow-up access-root plan reported no changes. This stage created IAM access only. A later separately approved bucket plan is also applied and verified; neither approval authorizes a scenario mutation, capture or research trial.
 
 ## Why a separate role
 
@@ -12,7 +12,7 @@ The raw Autopilot 0.3.0 identity policy is retained unedited. Its broad pass-rol
 
 ## Plan and verification
 
-The private local-backend S3 preview contains six S3 creates and one Terraform guard. It used the existing bounded role for planning, with the original backend removed and that transformation recorded. It is not a deployable remote-state plan. The S3 source now binds the dedicated role; a real protected-backend S3 plan has been prepared under that role and remains unapplied. Neither the preview nor its provenance hash proves human approval.
+The private local-backend S3 preview contains six S3 creates and one Terraform guard. It used the existing bounded role for planning, with the original backend removed and that transformation recorded. It is not a deployable remote-state plan. The S3 source now binds the dedicated role; the real protected-backend S3 plan was subsequently approved, applied and verified under that role. Neither the preview nor its provenance hash proves human approval.
 
 The approved and applied access-root saved plan used existing protected access state and contained **six creates, zero updates and zero deletes**:
 
@@ -28,7 +28,7 @@ Three Python regression tests check reproduction, policy size/provenance, exact 
 
 1. Completed: explicit approval and application of the exact six-create IAM plan after identity, source, runtime and plan hash checks. Code merge alone did not authorize that apply.
 2. Completed: exact trust, one-hour limit, dedicated boundary, two attachments, no inline policies and unchanged baseline documents verified through AWS MCP. The post-apply no-change plan passed; candidate simulation results remain limited to their supplied contexts.
-3. Prepared: the S3 root was initialized against its unique protected default-workspace backend using the new role. The real saved plan contains six S3 creates and one Terraform guard, zero updates and zero deletes. Reserved bucket/state names were absent at preflight; current regional prices were retrieved. Separate bucket deployment approval is pending.
+3. Prepared: the S3 root was initialized against its unique protected default-workspace backend using the new role. The real saved plan contains six S3 creates and one Terraform guard, zero updates and zero deletes. Reserved bucket/state names were absent at preflight; current regional prices were retrieved. The exact bucket saved plan was subsequently approved and applied; a no-change follow-up and [administrative metadata check](sandbox-administrative-readiness.md) passed.
 4. Keep the empty bucket secure after deployment. Reader/injector permissions, collector allowlists, executable trigger/restoration code and a separately approved development run are still required before mutation or capture.
 
 If IAM creation fails partway, retain Terraform state and the failure record, inspect actual attachments/boundaries and prepare a reviewed correction. Do not switch the S3 provider to the provisioning user, attach administrator access or remove a boundary. To withdraw unused access later, first verify the role has no active experiment or managed S3 resources, then review a separate IAM removal plan; do not destroy protected state or evidence as part of role cleanup.
