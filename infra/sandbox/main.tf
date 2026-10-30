@@ -23,7 +23,7 @@ terraform {
 }
 
 # Inputs: existing local login and bounded deployment role. Outputs: an Ohio-only provider.
-# Current role/state permissions do not cover this root; review changes before a live plan.
+# The dedicated role/state permissions are deployed; bucket creation still needs plan approval.
 provider "aws" {
   profile             = "dissertation"
   region              = "us-east-2"
