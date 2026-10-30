@@ -1,0 +1,15 @@
+# Inputs: existing protected state bucket and this root's unique development state key.
+# Output: isolated locked state; this example does not grant the role access to the new prefix.
+# Review/approve state permissions before initializing against AWS; do not reuse the baseline key.
+bucket               = "dissertation-653464153304-us-east-2-state"
+key                  = "dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate"
+region               = "us-east-2"
+profile              = "dissertation"
+allowed_account_ids  = ["653464153304"]
+encrypt              = true
+use_lockfile         = true
+workspace_key_prefix = "dissertation/653464153304/us-east-2/development-sandbox/workspaces"
+assume_role = {
+  role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+  session_name = "dissertation-sandbox-state"
+}

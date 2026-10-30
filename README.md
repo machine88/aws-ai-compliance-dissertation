@@ -7,6 +7,7 @@ Start with the [implementation plan](docs/implementation-plan.md), [proposal req
 ## Current software
 
 - Separate Terraform roots for protected state, bounded deployment access, a regional monitoring baseline and read-only evidence access. Source activation defaults remain false; the private approved configuration requests CloudTrail only. Later live plans must preserve that explicit configuration rather than accidentally request a pause.
+- A disabled-by-default [dedicated development sandbox scaffold](docs/scenario-sandbox-review.md), with private versioned storage and a proposed trigger/restoration workflow. Deployment permissions, real saved-plan review and separate mutation approval remain pending.
 - Two initial S3 instrument-control candidates and an explicit regional FSBP control snapshot. The independent, balanced scenario catalog is still pending.
 - Encrypted development snapshot/history collectors, a fixed-horizon native scheduler, independent journal/source verification and a local Keychain-backed decryption helper. The approved one-shot native development capture verified three snapshots with no failed/skipped samples and a passing acquisition schedule. Captures remain development evidence, not research trials. Trigger validity, delivery completeness, source freshness and paired monitoring remain unvalidated.
 - Offline Isolation Forest, bounded adaptation and deterministic mapping, with score-before-adapt and held-out protections. No study model has been trained; the draft catalog cannot yet support the required independent learning splits.
