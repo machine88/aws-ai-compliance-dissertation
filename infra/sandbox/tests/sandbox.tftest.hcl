@@ -4,7 +4,7 @@ mock_provider "aws" {
   mock_data "aws_caller_identity" {
     defaults = {
       account_id = "653464153304"
-      arn        = "arn:aws:sts::653464153304:assumed-role/dissertation-paused-baseline-deploy/offline-test"
+      arn        = "arn:aws:sts::653464153304:assumed-role/dissertation-sandbox-deploy/offline-test"
       user_id    = "synthetic"
     }
   }
@@ -101,7 +101,7 @@ run "reject_wrong_account" {
   }
   override_data {
     target = data.aws_caller_identity.current
-    values = { account_id = "000000000000", arn = "arn:aws:sts::000000000000:assumed-role/dissertation-paused-baseline-deploy/test" }
+    values = { account_id = "000000000000", arn = "arn:aws:sts::000000000000:assumed-role/dissertation-sandbox-deploy/test" }
   }
   expect_failures = [terraform_data.scope_guard]
 }

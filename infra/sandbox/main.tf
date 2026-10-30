@@ -16,7 +16,7 @@ terraform {
     use_lockfile         = true
     workspace_key_prefix = "dissertation/653464153304/us-east-2/development-sandbox/workspaces"
     assume_role = {
-      role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+      role_arn     = "arn:aws:iam::653464153304:role/dissertation-sandbox-deploy"
       session_name = "dissertation-sandbox-state"
     }
   }
@@ -29,7 +29,7 @@ provider "aws" {
   region              = "us-east-2"
   allowed_account_ids = ["653464153304"]
   assume_role {
-    role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+    role_arn     = "arn:aws:iam::653464153304:role/dissertation-sandbox-deploy"
     session_name = "dissertation-sandbox-deploy"
   }
   default_tags {
@@ -77,7 +77,7 @@ resource "terraform_data" "scope_guard" {
   input = var.deployment_review_sha256
   lifecycle {
     precondition {
-      condition     = data.aws_caller_identity.current.account_id == local.account_id && startswith(data.aws_caller_identity.current.arn, "arn:aws:sts::653464153304:assumed-role/dissertation-paused-baseline-deploy/") && terraform.workspace == "default"
+      condition     = data.aws_caller_identity.current.account_id == local.account_id && startswith(data.aws_caller_identity.current.arn, "arn:aws:sts::653464153304:assumed-role/dissertation-sandbox-deploy/") && terraform.workspace == "default"
       error_message = "Use the bounded dissertation deployment role and the isolated default workspace."
     }
     precondition {

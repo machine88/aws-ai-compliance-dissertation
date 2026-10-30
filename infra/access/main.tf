@@ -89,3 +89,45 @@ resource "aws_iam_role_policy_attachment" "backend_reads" {
 # Expose deployment_role_arn for verification and downstream tooling.
 # Inputs: the referenced resource attribute or protocol value. Outputs: this named Terraform result.
 output "deployment_role_arn" { value = aws_iam_role.deployment.arn }
+
+# Input: generated sandbox candidate. Output: new identity policy behind a dedicated boundary.
+resource "aws_iam_policy" "sandbox_generated" {
+  name   = "dissertation-sandbox-generated"
+  policy = file("${path.module}/generated-sandbox-policy.json")
+}
+
+# Input: exact sandbox/state ceiling. Output: one boundary, independent of the baseline role.
+resource "aws_iam_policy" "sandbox_boundary" {
+  name   = "dissertation-sandbox-boundary"
+  policy = file("${path.module}/sandbox-boundary.json")
+}
+
+# Input: exact sandbox state/metadata scope. Output: no access to baseline state or object bodies.
+resource "aws_iam_policy" "sandbox_backend" {
+  name   = "dissertation-sandbox-state-and-reads"
+  policy = file("${path.module}/sandbox-state-and-read-policy.json")
+}
+
+# Inputs: exact human principal and mandatory boundary. Output: separate one-hour sandbox role.
+resource "aws_iam_role" "sandbox" {
+  name                 = "dissertation-sandbox-deploy"
+  max_session_duration = 3600
+  permissions_boundary = aws_iam_policy.sandbox_boundary.arn
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [{ Effect = "Allow", Action = "sts:AssumeRole", Principal = { AWS = "arn:aws:iam::653464153304:user/martin-morales-personal" } }]
+  })
+  depends_on = [terraform_data.identity_guard]
+}
+
+# Inputs: dedicated role and generated candidate. Output: grants intersected with its boundary.
+resource "aws_iam_role_policy_attachment" "sandbox_generated" {
+  role       = aws_iam_role.sandbox.name
+  policy_arn = aws_iam_policy.sandbox_generated.arn
+}
+
+# Inputs: dedicated role and state/read policy. Output: exact new state-prefix access.
+resource "aws_iam_role_policy_attachment" "sandbox_backend" {
+  role       = aws_iam_role.sandbox.name
+  policy_arn = aws_iam_policy.sandbox_backend.arn
+}
