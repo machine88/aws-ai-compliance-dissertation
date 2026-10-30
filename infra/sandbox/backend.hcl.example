@@ -10,6 +10,6 @@ encrypt              = true
 use_lockfile         = true
 workspace_key_prefix = "dissertation/653464153304/us-east-2/development-sandbox/workspaces"
 assume_role = {
-  role_arn     = "arn:aws:iam::653464153304:role/dissertation-paused-baseline-deploy"
+  role_arn     = "arn:aws:iam::653464153304:role/dissertation-sandbox-deploy"
   session_name = "dissertation-sandbox-state"
 }

@@ -1,0 +1,180 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyOtherActions",
+      "Effect": "Deny",
+      "NotAction": [
+        "s3:CreateBucket",
+        "s3:DeleteObject",
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLocation",
+        "s3:GetBucketLogging",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetObject",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketTagging",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutObject",
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyOtherStorage",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "NotResource": [
+        "arn:aws:s3:::dissertation-sandbox-653464153304-us-east-2-s3-01",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "Identity",
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SandboxConfiguration",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLogging",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketTagging",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-sandbox-653464153304-us-east-2-s3-01"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "B04",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state"
+      ]
+    },
+    {
+      "Sid": "B05",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state"
+      ],
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate",
+            "dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock",
+            "dissertation/653464153304/us-east-2/development-sandbox/workspaces/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "B06",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B07",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B03",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLocation",
+        "s3:GetBucketLogging",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-sandbox-653464153304-us-east-2-s3-01"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    }
+  ]
+}

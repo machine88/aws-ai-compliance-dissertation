@@ -42,3 +42,22 @@ run "trail_start_remains_named_and_regional" {
     error_message = "The trail stage must not add Config start, remove the boundary or extend sessions."
   }
 }
+
+# Input: a distinct synthetic dedicated boundary ARN. Output: detect accidental baseline attachment.
+override_resource {
+  target = aws_iam_policy.sandbox_boundary
+  values = { arn = "arn:aws:iam::653464153304:policy/dissertation-sandbox-boundary" }
+}
+
+# Inputs: dedicated candidate role and policies. Outputs: isolated trust, ceiling and attachments.
+run "dedicated_sandbox_role" {
+  command = plan
+  assert {
+    condition     = aws_iam_role.sandbox.permissions_boundary == aws_iam_policy.sandbox_boundary.arn && aws_iam_role.sandbox.permissions_boundary != aws_iam_policy.boundary.arn && aws_iam_role.sandbox.max_session_duration == 3600
+    error_message = "Sandbox access must use its own mandatory one-hour boundary."
+  }
+  assert {
+    condition     = jsondecode(aws_iam_role.sandbox.assume_role_policy).Statement[0].Principal.AWS == "arn:aws:iam::653464153304:user/martin-morales-personal" && aws_iam_role_policy_attachment.sandbox_generated.role == aws_iam_role.sandbox.name && aws_iam_role_policy_attachment.sandbox_backend.role == aws_iam_role.sandbox.name
+    error_message = "Only the named user may assume the new role; its policies must not attach to baseline."
+  }
+}

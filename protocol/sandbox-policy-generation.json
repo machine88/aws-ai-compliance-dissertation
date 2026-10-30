@@ -1,0 +1,27 @@
+{
+  "status": "candidate_not_deployed",
+  "tool": "iam-policy-autopilot",
+  "version": "0.3.0",
+  "account": "653464153304",
+  "region": "us-east-2",
+  "input_kind": "private_local_backend_plan_preview",
+  "deployable_plan": false,
+  "source_commit": "89ea5ea1e6630b279e7c5f8cc40ce68dbda7ad06",
+  "generated_policy_canonical_sha256": "393c79eedc5d75620b37df419ccea9b14048f75de37ffab6932ac0e3f0727374",
+  "warnings": [
+    {
+      "WarningType": "WildcardResource",
+      "Location": {
+        "PolicyIndex": 0,
+        "StatementIndex": 0
+      },
+      "Message": "Statement could not be scoped to specific resources and uses Resource \"*\". Review whether broad resource access is intended."
+    }
+  ],
+  "raw_preview_and_live_inventory": "private_not_published",
+  "live_application_performed": false,
+  "existing_baseline_boundary_changed": false,
+  "planning_identity_role": "dissertation-paused-baseline-deploy",
+  "proposed_deployment_role": "dissertation-sandbox-deploy",
+  "dedicated_boundary_canonical_sha256": "c997a65ae78affc420f8bfd6d53edd08d156db6f25bf575a4d37d987c4b8202e"
+}

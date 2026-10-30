@@ -1,0 +1,88 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "B04",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state"
+      ]
+    },
+    {
+      "Sid": "B05",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state"
+      ],
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate",
+            "dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock",
+            "dissertation/653464153304/us-east-2/development-sandbox/workspaces/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "B06",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate",
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B07",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-653464153304-us-east-2-state/dissertation/653464153304/us-east-2/development-sandbox/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "B03",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLocation",
+        "s3:GetBucketLogging",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dissertation-sandbox-653464153304-us-east-2-s3-01"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-2"
+        }
+      }
+    }
+  ]
+}

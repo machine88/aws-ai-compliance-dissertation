@@ -112,3 +112,9 @@ The offline controller adds a retained design record and pairs bound to catalog,
 ## Native journal/source verification and relative plans
 
 `research/native_verification.py` checks independent plan/scope/final-receipt pins, replays exact events/clocks and timing audits, then verifies successful snapshots against invocation timing and read caps. Shared `read_archive_records` and `validate_runner_plan` retain prior semantics without cloud calls. `research/capture_template.py` deterministically resolves a human-approved relative schedule into a separately retained absolute plan before execution. See [native-verification.md](native-verification.md).
+
+## Dedicated sandbox access configuration
+
+`infra/access/generated-sandbox-policy.json` is unedited Autopilot identity-policy output from the private local-backend preview. `protocol/sandbox-policy-generation.json` describes that input's non-deployable status, tool version, public source commit, output hash and warning; raw plan/inventory hashes remain private. Neither file grants live access.
+
+`scripts/build_sandbox_boundary.py` reads the generated candidate plus the existing reviewed bucket/action and backend patterns. Its outputs, `infra/access/sandbox-boundary.json` and `sandbox-state-and-read-policy.json`, restrict a separate role to one bucket and exact new state/lock keys. Its documented pure builder makes no AWS request; its CLI writes proposed policy files only. See [the access review](sandbox-access-review.md) for the six-create plan and remaining approval gates.
